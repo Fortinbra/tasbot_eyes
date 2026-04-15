@@ -401,3 +401,74 @@ tasbot_eyes/
 - Introduce copied portable runtime code under `pico_build\src\portable\` while keeping firmware glue isolated in `src\firmware\`
 
 ---
+
+### 16. Phase 2 Runtime Seams: Portable Core vs. Platform Shell (Completed)
+
+**Date:** 2026-04-15  
+**Owner:** Proto Man  
+**Status:** COMPLETED  
+**Risk:** Low (architecture validated; implementation pending F1 proof revision)
+
+**Summary:** Phase 2 runtime separation has been validated through architectural scoping. The portable core (TASBot geometry, animation rendering, blink timing) is clearly separated from the Pico platform shell (board startup, frame cadence, `hw_led` sink, USB serial).
+
+**Locked Decisions:**
+1. Copy TASBot geometry and mapping logic into `pico_build\src\portable\` as the first Phase 2 deliverable
+2. Host-only modules (`main.c`, `led.*`, `network.*`, `filesystem.*`) remain outside the Pico tree
+3. Replace `ws2811_led_t` transport at Pico seam with a local RGB888 type
+4. Validate display correctness with four-phase deterministic smoke pattern (left eye → right eye → nose field → alignment markers) before GIF playback
+
+**Critical Path:** F2-1 (portable seam) → F2-2 (smoke pattern) → F2-3 (runtime tick instrumentation) → Demo Gate
+
+**Architectural Fit:** 
+- Smoke pattern validation requires **no asset pipeline dependency** — deterministic proof path independent of GIF preprocessing
+- Legacy runtime's multi-concern call paths (rendering + timing + GIF + sockets + filesystem) are now explicitly segregated
+- Real `hw_led` backend implementation awaits Plasma 2350 W wiring confirmation
+
+**Blockers for Implementation:**
+- F1 proof revision must complete (Mega Man review gate); Auto revision work in progress
+- Plasma 2350 W LED protocol wiring confirmation (Fortinbra action item) before real `hw_led` backend coding
+
+**Follow-Up Actions:**
+1. Implement real `hw_led` backend once board wiring is confirmed
+2. Port `color.c/.h` when Phase 2 timing instrumentation is in place
+3. Smoke pattern serves as Demo Gate milestone before Phase 3 GIF playback work begins
+
+**Reference:** `.squad/orchestration-log/2026-04-15T02-46-33Z-proto-man-runtime-seam.md`
+
+---
+
+### 17. F1 Proof Review Verdict (Mega Man)
+
+**Date:** 2026-04-16  
+**Owner:** Mega Man (Reviewer)  
+**Status:** REVIEW REJECTION (awaiting revision)  
+**Risk:** Medium (scaffold must be revised before Phase 2 unblock)
+
+**Summary:** Mega Man's acceptance review of Auto's Pico scaffold foundation flagged artifact proof gaps. The design and structure passed validation, but build evidence could not be independently reproduced in the review environment.
+
+**What Passed Review:**
+1. Isolation: `pico_build\` is independent from root host build
+2. SDK pattern: CMakeLists.txt follows Pico SDK conventions (`pico_sdk_import.cmake`, `pico_sdk_init()`, `pico_stdlib`, USB stdio on, UART off, extra outputs enabled)
+3. Serial stub: `main.c` and `board.h` define a plausible 2-second-delay boot banner
+4. Asset policy: `.gitignore` and documentation make asset-source precedence explicit
+5. Symbol hygiene: No forbidden POSIX/RPi headers detected
+
+**Blocking Failures:**
+1. **Artifact proof not reproduced:** Pico configure succeeded, but build halted before `.elf`/`.uf2` due to `picotool` nested configure failing on native compiler availability
+2. **Boot visibility unproven:** Serial banner is code; no captured log or hardware flash evidence demonstrates the ready signal within the 3-second gate
+3. **Reviewer mandate:** Evidence required, not inherited claims; Auto history does not substitute for fresh local validation
+
+**Required Revision:**
+- Different agent (not Auto) must perform reproof
+- Produce fresh `.elf`, `.bin`, `.hex`, `.uf2`, `.dis` artifacts with local verification
+- Capture exact serial boot proof with timing measurement
+- Validate root baseline remains untouched and compilable
+- Re-check symbol hygiene and documentation completeness
+
+**Sequencing Impact:**
+- Phase 1 F1-1, F1-2, F1-3 final merge blocked until reproof passes
+- Phase 2 unblock depends on F1 completion; smoke pattern proof cannot start until F1 seam is validated
+
+**Reference:** `.squad/decisions/inbox/mega-man-review-pico-scaffold.md`
+
+---

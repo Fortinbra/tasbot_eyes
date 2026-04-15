@@ -21,6 +21,9 @@ Migration success needs clear behavior checkpoints because the runtime platform 
 - Current baseline is a host-side Visual Studio CMake build with no CTest coverage; in this environment the build stops immediately on missing POSIX/RPi headers (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`, `netinet/in.h`).
 - The highest-risk migration seams are not cosmetic build edits: they are the LED driver contract, runtime asset loading from `./gifs`, POSIX threading/timing, and UDP control paths that may not exist on the Pico target.
 - Migration gates need proof at each seam: firmware target generation, preserved animation asset access, verified LED index mapping, timing stability, and an explicit decision on whether network-driven features survive on Pico or are replaced/stubbed.
+- F1 scaffold review pattern: accept layout/doc wins only after reproducing both stories — root baseline still fails in the same pre-existing way, and Pico build evidence must be rerun to real artifacts instead of inherited from prior notes.
+- Current scaffold paths to watch during review: `pico_build\CMakeLists.txt`, `pico_build\pico_sdk_import.cmake`, `pico_build\src\firmware\main.c`, `pico_build\src\firmware\board.h`, `pico_build\assets\generated\.gitignore`, and `.gitignore`.
+- In this workspace, `pico_build\` stays clean of forbidden POSIX/RPi headers, but the attempted Pico build stopped before artifact generation because the SDK fell back to building `picotool` from source without a resolved native host compiler in that sub-build.
 
 **Team Alignment (2026-04-15):**
 - Six regression checkpoints approved as merge gates (not aspirations)
