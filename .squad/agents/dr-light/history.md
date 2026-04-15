@@ -154,3 +154,30 @@ Dr. Light leads the Pico SDK migration architecture.
 - **F1 software foundation status:** APPROVED. Pico `pico_build\` slice is reproducible, isolated, and suitable for Phase 2 kickoff.
 - Minor documentation note: Future proof runs should align recorded hashes with reproduction command (current hashes match `-BuildDir C:\ws\tasbot_eyes\pico_build\build\dr-light-proof`, while command omits explicit path).
 
+### 2026-04-16 (Session 14): WS2812B-over-PIO Review & Rejection Update
+
+**Event:** Mega Man completed gate review of Proto Man's WS2812B-over-PIO hardware slice  
+**Verdict:** REJECTED FOR SIGN-OFF; Requires revision by different agent  
+**Reason:** Three blocking issues: board.h contract too implicit, proof reproducibility overclaimed, hardware gate open
+
+**Status Update for Architecture:**
+- Phase 2 seam (portable runtime boundary) remains APPROVED and solid
+- WS2812B/PIO hardware path is APPROVED as correct architectural choice
+- Issues are IMPLEMENTATION DETAILS (board.h declarations, proof accuracy, hardware capture) not design flaws
+
+**Blocking Issues (Require Revision):**
+1. **board.h contract:** Protocol, pin, pixel count, cadence/frame-rate must be explicit board-level declarations (not implicit fallbacks)
+2. **Proof reproducibility:** Published hashes path-sensitive; reproduction command must name exact build directory or republish hashes from default
+3. **Hardware proof gate open:** No captured serial transcript (10+ checksum cycles), no smoke-phase photo/video; current evidence is software-only
+
+**Required Revision Scope (Different Agent):**
+1. Tighten `pico_build\src\firmware\board.h` — make protocol/pin/pixel/cadence explicit
+2. Fix `pico_build\proof\foundation-proof.md` — fix reproducibility claim by naming exact build directory in command
+3. Flash to Plasma 2350; capture serial log (10+ checksum cycles) + visual proof (photo/video) of four smoke phases (RED, GREEN, BLUE, WHITE)
+
+**Decision:** Proto Man locked out of revision per team decision. Different agent to handle board/proof revision and hardware capture gate. Dr. Light's separate in-flight work tracked separately.
+
+**Sequencing Impact:**
+- Phase 3 hardware playback unblocked only after different agent revises and passes follow-up gate review
+- Phase 2 portable seam (smoke-pattern validation) can proceed independently; does NOT require PIO hardware proof
+

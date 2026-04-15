@@ -56,3 +56,27 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - Seam validated: 154-entry RGB888 transport → hw_led → GRB repack → GPIO 800kHz
 - Decision: Committed generated .pio.h to avoid pioasm rebuild friction on Windows
 - Status: COMPLETE, handed to Mega Man for review gate (build proof, serial capture, physical hardware validation)
+
+### 2026-04-16 (Session 14): WS2812B-over-PIO Review Rejection
+
+**Status:** REJECTED FOR SIGN-OFF; Awaiting revision by different agent  
+**Reviewer:** Mega Man  
+**Reason:** Three sign-off blockers: board.h contract too implicit, proof reproducibility overclaimed, hardware gate open
+
+**What Passed:**
+- Phase 2 seam held; legacy isolation confirmed
+- Pico/PIO wiring structurally correct
+- Local build proof exists (`.elf`, `.bin`, `.hex`, `.uf2`, `.dis`)
+
+**Blocking Issues (Require Revision):**
+1. **board.h contract:** Protocol, pin, pixel count, cadence/frame-rate must be explicit declarations, not implicit fallbacks
+2. **Proof reproducibility:** Published hashes path-sensitive; command must name exact build directory or republish from default
+3. **Hardware proof:** No serial transcript (10+ checksum cycles), no smoke-phase video/photo; software proof only
+
+**Required Revision Scope (Different Agent):**
+1. Tighten `board.h` — explicit board-level declarations
+2. Fix `foundation-proof.md` — reproducibility claim or republish hashes
+3. Flash to Plasma 2350; capture serial log + smoke-phase video
+
+**Decision:** Proto Man locked out of revision. Next step: Different agent revises and resubmits for gate review.
+

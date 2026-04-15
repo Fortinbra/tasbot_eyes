@@ -538,6 +538,47 @@ tasbot_eyes/
 **Status:** CAPTURED FOR TEAM MEMORY  
 **Risk:** None (foundational requirement clarification)
 
+---
+
+### 21. WS2812B-over-PIO Implementation Rejection (Mega Man)
+
+**Date:** 2026-04-16  
+**Owner:** Mega Man (Reviewer)  
+**Status:** REJECTED FOR SIGN-OFF; AWAITING REVISION BY DIFFERENT AGENT  
+**Risk:** Medium (blocking Phase 3 hardware gates)
+
+**Summary:** Proto Man delivered WS2812B-over-PIO firmware backend (Phase 2.1 → Phase 3 bridge) with seam isolation confirmed and phase 2 boundary holding. Mega Man review identified three sign-off blockers requiring revision by a different agent before completion.
+
+**What Passed:**
+1. **Phase 2 seam held.** `pico_build\src\portable\` owns logical-frame mapping; `pico_build\src\firmware\hw_led_pio.c` consumes RGB888 transport and repacks to WS2812 GRB locally. Isolation confirmed.
+2. **Legacy root path stayed isolated.** Fresh Visual Studio root build still fails on expected host-only gaps (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`). No new contamination detected.
+3. **Pico/PIO wiring structurally correct.** `pico_build\CMakeLists.txt` links `hardware_pio`; `hw_led_pio.c` uses checked-in `ws2812.pio(.h)`, one state machine, 800 kHz timing, explicit reset gap. Pin resolves to `PLASMA2350_DATA_PIN` / GPIO 15.
+4. **Local build proof exists.** `pico_build\tools\collect-proof.ps1` produced `.elf`, `.bin`, `.hex`, `.uf2`, `.dis`, and embedded-banner proof in `pico_build\build\proof-run` and `pico_build\build\ws2812-proof`.
+
+**Blocking Issues (Must Revise):**
+
+1. **Explicit board/protocol configuration gate not met.** `pico_build\src\firmware\board.h` defines timing constants and pin fallback chain but does NOT make protocol, pixel count, and frame-rate contract explicit per the approved "board/protocol config lives in board.h" requirement. Current state is too implicit.
+
+2. **Proof package overclaims reproducibility.** `pico_build\proof\foundation-proof.md` claims `powershell -ExecutionPolicy Bypass -File pico_build\tools\collect-proof.ps1` reproduces published hashes, but published `.elf`, `.dis`, and `.elf.map` hashes only match when script runs with explicit `-BuildDir C:\ws\tasbot_eyes\pico_build\build\ws2812-proof`. Default `proof-run` directory yields different hashes for path-sensitive artifacts.
+
+3. **Hardware proof gate still open.** No captured Pico serial transcript with 10+ checksum cycles; no photo/video evidence of four smoke phases (RED, GREEN, BLUE, WHITE); current evidence is software-side build proof only. Gate explicitly requires hardware capture on Plasma 2350.
+
+**Required Revision (By Different Agent):**
+
+This slice must be revised by an agent other than Proto Man. Revision scope:
+
+1. **Tighten `board.h`** — protocol, pin, pixel count, and smoke cadence/frame-rate must be explicit board-level declarations (not implicit fallbacks)
+2. **Fix `foundation-proof.md`** — either name exact build directory in reproduction command OR republish hashes from script's default `proof-run` directory
+3. **Rerun proof with hardware capture** — flash `tasbot_eyes_pico.uf2` to Plasma 2350, capture 30-second serial transcript (10+ checksum cycles), add visual proof (photo/video) of four smoke phases
+
+**Sequencing Impact:**
+- Phase 3 hardware playback unblocked only after this revision completes and passes follow-up gate review
+- Proto Man locked out of this revision cycle per team decision
+
+**Next Measurable Step:**
+Different agent revises board/proof contract and captures hardware evidence (serial log + smoke-phase video) on Plasma 2350, then resubmits for gate review.
+
+---
 **Directive:** The LED array is all WS2812B LEDs, and the Pico implementation should use PIO for LED output.
 
 **Consequence:** Phase 2 WS2812B-over-PIO runtime work is now the active next slice.

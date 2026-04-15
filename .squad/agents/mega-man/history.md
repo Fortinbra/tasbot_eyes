@@ -174,3 +174,5 @@ Migration gates follow regression-thinking model: start from expected behavior (
 - Four-phase pattern: RED left eye → GREEN right eye → BLUE nose → WHITE alignment (each ~750ms)
 - Deliverables pending: Serial checksums, physical hardware evidence
 - Status: AWAITING Proto Man proof submission, will re-review upon completion
+- Re-review verdict on the first WS2812B-over-PIO slice: the transport implementation and isolation are good enough to keep, but the slice is not yet acceptable for sign-off because `board.h` still lacks the explicit board/protocol declarations demanded by the proof gate and the published proof command does not reproduce the published `.elf/.dis/.elf.map` hashes unless `-BuildDir C:\ws\tasbot_eyes\pico_build\build\ws2812-proof` is supplied.
+- Fresh review evidence: `pico_build\tools\collect-proof.ps1` succeeds in both `proof-run` and `ws2812-proof`; same-directory rebuilds are stable, but cross-directory `.elf/.dis/.elf.map` hashes differ, so proof docs must name the exact build directory when claiming reproducible hashes.

@@ -34,6 +34,7 @@ Build proof and hardware proof are separate gates. Do not conflate them. A stub 
 ### Require Reproducible Evidence for Hardware Gates
 
 - **Build proof:** Fresh rebuild, symbol audit, forbidden-header grep, artifact hashes
+- If published hashes are build-path-sensitive, the proof doc must name the exact build directory used; do not claim a default command reproduces hashes that only match a special path
 - **Serial proof:** Captured UART/USB log showing boot message, phase progression, expected checksums
 - **Visual proof:** Photo or video of physical LEDs matching expected colors and timing
 - **Stability proof:** 10+ consecutive cycles with identical checksums (detects non-deterministic rendering)
@@ -100,6 +101,7 @@ Hardware proof: Captured serial log shows boot banner within 3 seconds of power-
 - **Conflating build and hardware proof:** Saying "the firmware compiles, so the LEDs must work" without physical evidence
 - **Vague behavioral requirements:** "Colors should light" without specifying which colors, which regions, which timing
 - **Ignoring checksum drift:** Saying "it looked pretty consistent" instead of measuring actual cycle-to-cycle variance
+- **Overclaiming reproducibility:** Publishing artifact hashes from one build directory while documenting a different default reproduction command
 - **Stub acceptance as final proof:** Treating a stub implementation as equivalent to the real driver
 - **Skipping fallback documentation:** Building a feature that cannot revert to stub if the real driver fails
 - **Mixing timing concerns:** Validating 60 Hz smoothness in a 1 Hz smoke test (different gates, different criteria)
