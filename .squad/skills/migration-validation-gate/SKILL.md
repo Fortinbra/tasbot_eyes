@@ -36,14 +36,22 @@ Use this when a platform migration claims progress because files exist or CMake 
 - If a gate says "serial-ready within 3 seconds," require a captured serial log or equivalent hardware evidence.
 - A plausible stub is not the same as a passed gate.
 
+### Split software proof from hardware proof
+
+- Record local artifact proof separately from on-device proof when hardware is unavailable.
+- Make the firmware contract explicit in source (for example: exact ready delay and repeat window), then document that this is preparatory evidence rather than a closed hardware gate.
+- Provide one reproducible command or script that can rebuild artifacts and, when a board is present, capture the serial transcript needed to close the remaining gate.
+
 ## Examples
 
 - `pico_build\CMakeLists.txt` imports the Pico SDK and enables extra outputs, but acceptance still waits on actual `.elf`/`.uf2` generation.
 - `pico_build\src\firmware\main.c` prints a banner after `sleep_ms(2000)`, but the gate stays open until flashing/serial evidence exists.
 - Root host build failing on the same old missing headers (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`) is useful regression evidence.
+- `pico_build\proof\foundation-proof.md` can hold reproduced artifact hashes while `pico_build\tools\collect-proof.ps1 -SerialPort COMx` remains the path to close the hardware-ready claim.
 
 ## Anti-Patterns
 
 - **Accepting build theater** — approving a migration because the directory structure looks right.
 - **Trusting prior notes blindly** — treating another agent's history entry as substitute for current proof.
 - **Collapsing file proof and runtime proof** — inferring hardware success from a `puts()` call in source.
+- **Hiding missing hardware** — presenting a prepared boot contract as if it were already a captured serial pass.

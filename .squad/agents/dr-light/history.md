@@ -106,3 +106,39 @@ Dr. Light leads the Pico SDK migration architecture.
 2. Coder: Begin Phase 0 (F0-1, F0-2, F0-3)
 3. Dr. Light: Review F1-3 output before Phase 2 kickoff; gate Phase 2 start
 4. Team: Use checkpoint gates to validate progress; do not proceed past gate until validation passes
+
+### 2026-04-15 (Session 10): F1 Proof Slice Revision Complete
+
+- Dr. Light completed revision for rejected F1 proof slice
+- Delivered: `pico_build/tools/collect-proof.ps1` (reproducible proof script), `pico_build/proof/foundation-proof.md` (recorded proof package), tightened migration docs separating software artifact proof from hardware serial proof
+- Proof infrastructure now reproducible and well-documented
+- Mega Man re-reviewing separately (not logged as completed)
+
+### Session 9 (2026-04-16): Pico Foundation Proof Revision
+
+**Requested by:** Fortinbra  
+**Objective:** Replace the rejected scaffold proof with a reviewable evidence package that demonstrates real Pico artifacts and makes the serial-ready claim honest.
+
+**Completed:**
+- Reproduced the isolated Pico build under `pico_build\build\dr-light-proof` and recorded `.bin`, `.dis`, `.elf`, `.map`, `.hex`, and `.uf2` artifact evidence
+- Re-ran the legacy root build in a fresh directory and confirmed it still fails on the pre-existing host dependency gaps (`ws2811`, `netinet`, `dirent` assumptions)
+- Tightened the firmware stub contract in `pico_build\src\firmware\main.c` to emit an immediate boot banner plus a repeated ready window inside the 3-second gate
+- Added `pico_build\tools\collect-proof.ps1` so future reviewers can rebuild artifacts and optionally capture serial output from a real board
+- Added `pico_build\proof\foundation-proof.md` and updated migration docs to keep software proof and hardware proof as separate claims
+
+**Architecture Decisions Reinforced:**
+- Local build identity and hardware-ready proof are separate validation lanes; one does not imply the other
+- The Phase 1 stub should advertise a deterministic boot-ready window rather than a single fragile banner emission
+- Root legacy build behavior remains a regression baseline, not a target for cleanup during Pico scaffold work
+
+**Key Paths:**
+- `pico_build\src\firmware\main.c`
+- `pico_build\README.md`
+- `pico_build\tools\collect-proof.ps1`
+- `pico_build\proof\foundation-proof.md`
+- `docs\migration\features\f1-foundation.md`
+
+**Learnings:**
+- A rejected migration slice usually needs better proof packaging, not necessarily more architecture.
+- Repeating the ready banner inside the gate makes serial bring-up evidence less brittle without increasing coupling.
+- Review docs should state plainly when hardware evidence is pending instead of letting a source-level stub masquerade as a passed runtime gate.

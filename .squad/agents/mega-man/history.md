@@ -24,6 +24,10 @@ Migration success needs clear behavior checkpoints because the runtime platform 
 - F1 scaffold review pattern: accept layout/doc wins only after reproducing both stories — root baseline still fails in the same pre-existing way, and Pico build evidence must be rerun to real artifacts instead of inherited from prior notes.
 - Current scaffold paths to watch during review: `pico_build\CMakeLists.txt`, `pico_build\pico_sdk_import.cmake`, `pico_build\src\firmware\main.c`, `pico_build\src\firmware\board.h`, `pico_build\assets\generated\.gitignore`, and `.gitignore`.
 - In this workspace, `pico_build\` stays clean of forbidden POSIX/RPi headers, but the attempted Pico build stopped before artifact generation because the SDK fell back to building `picotool` from source without a resolved native host compiler in that sub-build.
+- Runtime seam slice approved as a Phase 2 starting point when it keeps the boundary at `logical 28x8 frame -> TASBot layout mapper -> 154 RGB888 transport buffer -> firmware hw_led sink`; that seam now exists in `pico_build\src\portable\` and `pico_build\src\firmware\`.
+- Fresh review configure for `pico_build\` proved the firmware target now compiles the intended seam files (`main.c`, `hw_led_stub.c`, `tasbot_layout.c`, `smoke_patterns.c`) without pulling in forbidden host headers, even though the build still stops later in the `picotool` host sub-build.
+- Root legacy validation remains a regression checkpoint, not a portability target: a fresh Windows build still fails on the same legacy host gaps (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`), which is useful evidence that `pico_build\` has not contaminated the original sources.
+- Key review artifacts for this seam: `pico_build\build\review-4\build.ninja` (fresh source list proof), `docs\migration\features\f2-core-runtime.md` (approved seam contract), and `pico_build\src\portable\tasbot_layout.c` plus `smoke_patterns.c` (geometry and deterministic smoke phases).
 
 **Team Alignment (2026-04-15):**
 - Six regression checkpoints approved as merge gates (not aspirations)
@@ -85,3 +89,9 @@ Migration gates follow regression-thinking model: start from expected behavior (
 - Eight-point F1 acceptance gate finalized for the Pico scaffold review.
 - Merge criteria now explicitly require root build preservation, boot-visible serial readiness, asset-source policy, symbol hygiene, and reversibility.
 - Review is complete, but Auto remains in progress on the actual `pico_build` scaffold implementation; do not treat the gate as implementation completion.
+
+### 2026-04-15 (Session 10): Dr. Light F1 Proof Revision — Re-Review Pending
+
+- Dr. Light completed revision for rejected F1 proof slice
+- Delivered: `pico_build/tools/collect-proof.ps1` (reproducible proof script), `pico_build/proof/foundation-proof.md` (recorded proof package), tightened migration docs (software artifact proof vs hardware serial proof)
+- Mega Man re-reviewing this revision on a separate track (not logged as completed yet)
