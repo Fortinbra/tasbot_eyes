@@ -109,3 +109,25 @@ The existing `build\` directory is useful only as a baseline signal: it proves t
 - Timestamp: 2026-04-15T02:26:09Z
 - Session log: .squad/log/2026-04-15T02-26-09Z-docs-reorg.md
 - Inbox merge: Pending Scribe processing
+
+### 2026-04-15 (Session 8): Pico Build Foundation Kickoff
+
+**Scaffold Landed:**
+- `pico_build\CMakeLists.txt` is now an isolated Pico SDK entry point using the standard `pico_sdk_import.cmake` -> `pico_sdk_init()` flow
+- `pico_build\pico_sdk_import.cmake` resolves `PICO_SDK_PATH` from cache or environment and falls back to the sibling checkout at `C:\ws\pico-sdk`
+- `pico_build\src\firmware\main.c` is a serial-ready stub that initializes stdio, waits briefly for USB enumeration, and prints `tasbot_eyes pico_build stub ready`
+- `pico_build\assets\generated\.gitignore` keeps the future generated-asset lane present without tracking emitted files
+
+**Build Decisions Proven:**
+- Default `PICO_BOARD` is `pico2` for the RP2350-family kickoff, but the board stays overrideable from CMake when Plasma-specific config is ready
+- The first firmware target stays intentionally boring: `pico_stdlib` only, USB stdio enabled, UART stdio disabled, and `pico_add_extra_outputs()` turned on for UF2 generation
+
+**Validation Signals:**
+- Root legacy CMake configure path still works unchanged on Windows; the host build still fails later on the same pre-existing POSIX/Linux dependencies (`gif_lib.h`, `unistd.h`, `dirent.h`, `pthread.h`, `ws2811`)
+- The new Pico path produced `tasbot_eyes_pico.elf`, `.bin`, `.hex`, `.uf2`, and `.dis` once configured with the SDK, ARM GCC toolchain, Ninja, and installed picotool
+
+### 2026-04-14 (Session 8): F1 Gate Ready for Scaffold Review
+
+- Mega Man completed the F1 scaffold validation-gate review and published the merge checklist.
+- Your in-flight `pico_build` scaffold work will be judged against the eight required checkpoints: preserved root build, serial-ready boot proof, explicit asset-source rule, seam isolation, symbol hygiene, documentation completeness, and reversible history.
+- Status remains IN PROGRESS until the scaffold itself exists and passes the gate.

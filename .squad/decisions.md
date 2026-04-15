@@ -310,3 +310,94 @@ tasbot_eyes/
 4. Team: Architecture review of Phase 0 deliverables before Phase 1 kickoff
 
 **Reference:** `.squad/decisions/inbox/dr-light-project-structure-constraints.md`
+
+### 11. Implementation Directive: Demo-First Phase Validation
+**Date:** 2026-04-15T02:27:30Z  
+**Owner:** Fortinbra (via Copilot)  
+**Status:** ACTIVE DIRECTION
+
+**Summary:** Review each migration phase for a validatable end state, optimize the sequence to demo `colorful.gif` on hardware as quickly as possible, and defer fine-tuning plus the rest of the animation set until after that milestone.
+
+---
+
+### 12. Fastest Credible `colorful.gif` Demo Gate
+**Date:** 2026-04-15 (Session 8)  
+**Owner:** Dr. Light  
+**Status:** DECISION APPROVED
+
+**Summary:** The earliest credible hardware demo is an explicit Demo Gate after F1-3: colorful.gif frames render on the Plasma 2350 W before Phase 2 timing refactor begins.
+
+**Critical Path:** F0-1 → F0-2 → F0-3 → F1-1 → F1-3 → Demo Gate
+
+**Gate Requirements:**
+- Colorful.gif frames display on hardware with correct colors and sequence
+- Reasonable frame pacing is acceptable for the gate; full playback smoothness remains a Phase 2 concern
+- Demo Gate must pass before F2 work is treated as unblocked
+
+**Rationale:** Early hardware proof reduces risk, keeps the implementation reversible, and lets the team validate the LED path before deeper runtime refactors.
+
+---
+
+### 13. Demo-First Phase Validation Refinements
+**Date:** 2026-04-16  
+**Owner:** Dr. Light, Mega Man  
+**Status:** APPROVED FOR IMPLEMENTATION
+
+**Summary:** Phase validation criteria were tightened so every phase has an objective exit gate while preserving the fastest credible path to a `colorful.gif` hardware demo.
+
+**Refinements Locked:**
+- Phase 0 must prove boot visibility with a serial-ready message within 3 seconds
+- Phase 1 acceptance explicitly allows `led.c` refactoring while requiring hardware proof and symbol hygiene
+- Phase 2 timing validation must use measurable instrumentation, not subjective comparison
+- Phase 3 owns the first true playback demo and serial queue proof
+- Phase 4 sign-off requires a concrete hardware stability checklist
+
+**Sequencing Outcome:** Phase order remains intact; a Demo Gate after F1-3 is the earliest credible visual milestone.
+
+---
+
+### 14. F1 Scaffold Validation Gate
+**Date:** 2026-04-16 (Session 7)  
+**Owner:** Mega Man (Tester)  
+**Status:** READY FOR IMMEDIATE IMPLEMENTATION
+
+**Summary:** Mega Man formalized an eight-point reviewer checklist for F1 completion so the Pico scaffold cannot be merged on build theater alone.
+
+**Acceptance Gate Highlights:**
+1. Root build baseline remains untouched and compilable
+2. `pico_build\` contains the expected firmware and generated-asset layout
+3. Firmware emits a visible serial-ready boot signal within 3 seconds
+4. Asset-source precedence is explicit and documented
+5. Portable seam isolation is demonstrable
+6. Symbol audit excludes forbidden POSIX headers and cross-contamination
+7. F1 documentation is complete for the next implementer
+8. Git history stays reversible by removing `pico_build\` only
+
+**Status Note:** This review is complete; it is a merge gate for Auto's ongoing scaffold implementation, not evidence that implementation is done.
+
+---
+
+### 15. Pico Build Foundation Kickoff
+**Date:** 2026-04-15  
+**Owner:** Auto  
+**Status:** IMPLEMENTED; READY FOR TEAM REVIEW  
+**Risk:** Low
+
+**Summary:** Phase 1 kickoff starts from an isolated Pico SDK firmware root under `pico_build\`, not from a rewrite of the legacy root build. The initial target proves the SDK/toolchain path, emits real Pico artifacts, and provides a USB-serial ready stub for later hardware bring-up.
+
+**Locked Decisions:**
+1. Keep all Pico build glue inside `pico_build\` while root CMake and root sources stay untouched reference inputs
+2. Resolve the SDK with `pico_build\pico_sdk_import.cmake` via cache entry, environment variable, then sibling checkout fallback at `C:\ws\pico-sdk`
+3. Default the kickoff board to `pico2`, while keeping board selection overrideable until Plasma-specific wiring is confirmed
+4. Keep the first firmware target minimal: `pico_stdlib` only, USB stdio enabled, UART stdio disabled, and `pico_add_extra_outputs()` on for immediate UF2 proof
+5. Track `pico_build\assets\generated\` with a `.gitignore` so the generated-asset lane is explicit without checking in generated files
+
+**Validation:**
+- Root host configure path stays unchanged; Windows host failure modes remain the same pre-existing POSIX/Linux dependency gaps
+- Isolated Pico path produces `.elf`, `.bin`, `.hex`, `.uf2`, and `.dis` artifacts when configured with Pico SDK, ARM GCC, Ninja, and picotool
+
+**Follow-Up:**
+- Add board-specific pin selection and protocol configuration once Plasma 2350 W wiring is confirmed
+- Introduce copied portable runtime code under `pico_build\src\portable\` while keeping firmware glue isolated in `src\firmware\`
+
+---
