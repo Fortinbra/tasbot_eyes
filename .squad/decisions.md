@@ -188,3 +188,63 @@
 - All meaningful changes require team consensus
 - Document architectural decisions here
 - Keep history focused on work, decisions focused on direction
+
+---
+
+## 8. Pico SDK Project Structure & Constraints (Phase 0 Requirement)
+
+**Date:** 2026-04-15 (Session 5)  
+**Owner:** Dr. Light  
+**Status:** APPROVED  
+**Risk:** Low (structure only, no code changes)
+
+**Summary:** Fortinbra has clarified hard constraints that require a new Phase 0 before existing Phase 1.
+
+**Constraints:**
+1. **Original sources are read-only** — No in-place refactoring
+2. **Pico SDK lives in subdirectory** — `pico_sdk/` as independent Pico root
+3. **GIF preprocessing is offline** — Asset pipeline is foundational (Phase 0), not Phase 3
+4. **colorful.gif is first validation target** — MVP acceptance requires colorful.gif playback
+
+**Architecture Decision:**
+
+New **Phase 0: Project Structure & SDK Setup** becomes mandatory first phase:
+```
+F0-1: Create pico_sdk/ subdirectory + CMake structure
+F0-2: Preprocess colorful.gif to binary asset header
+F0-3: Pico CMake build linking portable code from parent directory
+ └─→ F1-1: Define Hardware LED Interface (existing phases 1–4 follow unchanged)
+```
+
+**Directory Layout:**
+```
+tasbot_eyes/
+├── CMakeLists.txt, *.c, *.h, gifs/  (original, read-only)
+└── pico_sdk/                         (NEW: Pico firmware root)
+    ├── CMakeLists.txt
+    ├── src/ (platform-specific)
+    └── assets/ (preprocessed headers)
+```
+
+**Build Isolation:**
+- Pico: `cd pico_sdk/build && cmake .. && make`
+- RPi: `cmake . && make` (unchanged)
+- Zero interference; independent parallel work
+
+**Risk Mitigation:**
+- Reversibility: Pico build can be discarded without touching original code
+- Clarity: Explicit boundary between original and adaptation
+- Early validation: colorful.gif success gate detects issues before later phases
+
+**Impact on Sequencing:**
+- Original critical path (F1-1 → F1-2 → F1-3 → F2-x → F3-x → F4-x) remains unchanged
+- Phase 0 (F0-1, F0-2, F0-3) is now blocking predecessor to Phase 1
+- Estimated effort: +2 hours (mainly CMake setup + asset preprocessing tool)
+
+**Next Steps:**
+1. Fortinbra: Confirm colorful.gif location in gifs/ directory
+2. Auto/Coder: Implement Phase 0 features before Phase 1
+3. Dr. Light: Update FEATURE_BREAKDOWN.md with Phase 0 prepended
+4. Team: Architecture review of Phase 0 deliverables before Phase 1 kickoff
+
+**Reference:** `.squad/decisions/inbox/dr-light-project-structure-constraints.md`

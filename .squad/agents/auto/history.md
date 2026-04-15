@@ -43,3 +43,32 @@ The existing `build\` directory is useful only as a baseline signal: it proves t
 - Wireless capability present but optional; Phase 1-2 proceed without CYW43439 initialization
 
 **Next Step:** Pimoroni Plasma 2350 W schematic review will finalize GPIO pin assignments and confirm LED wire protocol (WS2812 vs. APA102).
+
+### 2026-04-16 (Session 4): Phase 1 Feature Document & Subdirectory Strategy
+
+**Hard Constraints Captured (from Fortinbra):**
+1. **Original sources immutable** — root-level .c/.h files NEVER modified; Pico project isolated in subdirectory
+2. **No MCU filesystem usage** — all GIF assets preconverted offline to binary; firmware has no FS access
+3. **Offline asset preprocessing** — Option A (GIF→frame tool) is mandatory, not optional
+4. **Colorful.gif as first end-to-end goal** — has both color and animation timing complexity; ideal validation target
+
+**Architecture Decisions:**
+- **Subdirectory pattern:** `pico_build/` is the isolated Pico SDK project root; original sources stay read-only
+- **Portable code boundary:** 6 files copied into `pico_build/src/portable/` with POSIX dependencies removed
+- **Firmware glue:** `src/firmware/` owns main.c, board.h, LED driver stubs; zero coupling to portable
+- **Asset directory:** `pico_build/assets/` holds preconverted .h files (Phase 3); asset tool designed separately
+- **Feature doc pattern:** `FEATURES_F<phase>_<title>.md` at repo root for visibility and sequencing clarity
+
+**Implications for Build:**
+- CMake never needs cross-compilation logic; Pico SDK patterns (pico_sdk_import.cmake) handle all toolchain setup
+- Clean dependency: portable code compiles independently; firmware glue is optional until Phase 3
+- Git diff enforces immutability: only `pico_build/`, feature docs, and team decisions should appear in commits
+
+**Risk Mitigations:**
+- Subdirectory isolation prevents accidental modification of originals
+- Copying (not moving) sources preserves reference and allows independent updates
+- Offline preprocessing removes highest-risk source of MCU runtime failures (filesystem I/O, SRAM exhaustion)
+- Feature document provides clear next-phase handoff (F1→F2→F3→F4 dependencies)
+
+**Decisions Captured:**
+- Decision `.squad/decisions/inbox/auto-isolated-pico-project.md` documents subdirectory rationale, asset preprocessing, feature doc pattern, and open questions for team consensus

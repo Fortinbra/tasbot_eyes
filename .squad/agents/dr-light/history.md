@@ -150,3 +150,49 @@ Migration work will need architecture decisions around hardware control, asset h
 - Sequencing lock is sound: the critical path (F1 HW → F2 threading → F3 assets → F4 cleanup) is the right order.
 - Risk mitigation works: by deferring board-specific details to Phase 1, we've kept architecture flexible and can adapt to RP2350A advantages without cascade.
 - Reference code matters: Pimoroni's MicroPython plasma repo is a good validation source for Phase 2 (timer/ISR) and Phase 3 (asset loading patterns).
+
+### Session 5 (2026-04-15)
+
+**Completed:**
+- Reviewed new project constraints from Fortinbra (original sources read-only, Pico SDK in subdirectory, GIF preprocessing, colorful.gif validation)
+- Assessed impact on FEATURE_BREAKDOWN.md sequencing
+- Identified that constraints require **new Phase 0** before existing Phase 1
+- Approved new architecture with decision recorded in `.squad/decisions/inbox/dr-light-project-structure-constraints.md`
+
+**Constraint Analysis:**
+
+1. **Original Sources Are Read-Only** → requires subdirectory isolation
+2. **Pico SDK Lives in Subdirectory** → `pico_sdk/` independent root; portable code linked from parent
+3. **GIF Preprocessing Offline** → asset pipeline is foundational; colorful.gif → binary header at build time
+4. **colorful.gif First Validation Target** → early success gate exercising animation + color
+
+**Architecture Decision:**
+
+New **Phase 0: Project Structure & SDK Setup** is the blocking first feature:
+```
+F0-1: Create pico_sdk/ subdirectory + CMake structure
+ └─→ F0-2: Preprocess colorful.gif to binary asset header
+     └─→ F0-3: Establish Pico CMake build linking portable code from parent
+         └─→ F1-1: Define Hardware LED Interface (existing, unchanged sequence)
+```
+
+**Directory Layout:**
+```
+tasbot_eyes/
+├── CMakeLists.txt, *.c, *.h, gifs/  (original, read-only)
+└── pico_sdk/                         (NEW)
+    ├── CMakeLists.txt (Pico root)
+    ├── src/
+    ├── assets/
+    └── build/
+```
+
+**Build Isolation:**
+- Pico: `cd pico_sdk/build && cmake .. && make` (independent)
+- RPi: `cmake . && make` (unchanged)
+
+**Learnings:**
+- Hard constraints on project structure must be stated upfront to avoid rework
+- Isolation (subdirectory) + read-only originals = reversibility and clarity
+- Asset preprocessing is foundational; belongs in Phase 0, not Phase 3
+- Early validation gate (colorful.gif) enables faster iteration
