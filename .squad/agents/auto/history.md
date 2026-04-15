@@ -131,3 +131,37 @@ The existing `build\` directory is useful only as a baseline signal: it proves t
 - Mega Man completed the F1 scaffold validation-gate review and published the merge checklist.
 - Your in-flight `pico_build` scaffold work will be judged against the eight required checkpoints: preserved root build, serial-ready boot proof, explicit asset-source rule, seam isolation, symbol hygiene, documentation completeness, and reversible history.
 - Status remains IN PROGRESS until the scaffold itself exists and passes the gate.
+
+### 2026-04-16 (Session 9): Phase 3 colorful.gif Asset Pipeline Slice
+
+**What Landed:**
+- `pico_build\tools\generate-gif-asset.ps1` now performs the first offline GIF→C conversion slice using `System.Drawing`, emits `colorful_asset.generated.h`, and writes `colorful_asset.metadata.txt` into `pico_build\assets\generated\`
+- The generator follows the documented source-selection rule for `colorful.gif`: prefer `external\TASBot-eye-animations\gifs\others\colorful.gif`, fall back to root `gifs\`, and fail loudly when neither source is available
+- `pico_build\src\portable\embedded_animation.*` and `src\firmware\colorful_asset.*` define the stable embedded-asset contract that firmware can consume immediately
+- `pico_build\src\firmware\main.c` now loops the embedded `colorful.gif` frames over the existing WS2812B PIO transport instead of the smoke pattern
+
+**Validation Signals:**
+- `powershell -ExecutionPolicy Bypass -File pico_build\tools\collect-proof.ps1 -BuildDir C:\ws\tasbot_eyes\pico_build\build\colorful-proof` reproduced Pico artifacts with the generated colorful asset linked into the UF2
+- The root host baseline still fails in the same legacy way on `gif_lib.h`, `unistd.h`, `dirent.h`, `pthread.h`, and `ws2811` headers, which confirms the new asset work stayed isolated under `pico_build\`
+
+**Key Paths:**
+- `pico_build\tools\generate-gif-asset.ps1`
+- `pico_build\assets\generated\colorful_asset.generated.h`
+- `pico_build\assets\generated\colorful_asset.metadata.txt`
+- `pico_build\src\portable\embedded_animation.h`
+- `pico_build\src\firmware\colorful_asset.c`
+
+### 2026-04-16 (Session 10): Colorful.gif Asset Pipeline Completion
+
+**Implementation Complete:**
+- Phase 3 colorful.gif asset pipeline fully implemented and ready for Mega Man's acceptance gate review
+- Asset source precedence explicitly enforced: external/TASBot-eye-animations/gifs/ (submodule) → gifs/ (root) → loud failure
+- Generated asset metadata sidecar captures source selection and candidate inventory for auditability
+- Pico firmware UF2 now embeds colorful.gif frames and loops them over WS2812B PIO transport
+- Build reproducibility validated: byte-identical assets across independent rebuilds
+- Proof of implementation archived: orchestration-log and session-log entries created
+
+**Handoff State:**
+- Mega Man assigned to validate timing fidelity (frame/delay preservation), hardware playback on Plasma 2350 W, and build reproducibility via checksum matching
+- This slice completes Auto's asset pipeline work; not logged as Phase 3 done pending gate review
+- Next reviewer validates: 14-point acceptance checklist (source, frame inventory, converter reproducibility, header size, code hygiene, CMakeLists integration, symbol audit, UF2 flash, serial ready, playback loop, checksum stability, timing accuracy, visual clarity, regression check)

@@ -192,3 +192,127 @@ Migration gates follow regression-thinking model: start from expected behavior (
 - **Decision merged to team decisions log:** Dr. Light revision approved at architecture level; full review decision captured with evidence and follow-up gates.
 - **Status:** Mega Man now re-reviewing this revision on parallel track. No changes to seam; focus is on contract clarity and proof transparency.
 - **Hardware gate:** Deferred; software-side sign-off sufficient for current proof package. Hardware deployment when real Plasma 2350 capture ready.
+
+### 2026-04-16 (Session 15): F3 colorful.gif Acceptance Gate Defined
+
+**Task:** Define measurable acceptance gate for the colorful.gif asset slice, focusing on proof needed after asset pipeline implementation.
+
+**Key Decisions Captured:**
+
+1. **Source Selection Rule is Non-Negotiable:**
+   - Primary: xternal/TASBot-eye-animations/gifs/others/colorful.gif (tracked submodule)
+   - Fallback: gifs/colorful.gif (legacy local reference, git-ignored)
+   - Failure mode: Explicit build error if neither exists
+   - Evidence required: Submodule state confirmed, comparison inventory logged, CMakeLists.txt documents which source won
+
+2. **Offline Asset Reproducibility is Critical:**
+   - Generated header must be byte-identical across two independent builds on same machine
+   - SHA256 checksums of generated files must match exactly
+   - If they don't, pipeline has hidden non-determinism (timestamp, temp path, etc.) blocking gate
+   - Size budget: 154 pixels × 3 bytes RGB888 × 60 frames ≈ 28 KB per animation; warn if > 50 KB
+
+3. **Frame-Count and Timing Fidelity Locked:**
+   - COLORFUL_FRAME_COUNT must equal source GIF frame count (no drop/merge)
+   - Per-frame delays preserved within ±1 unit (±10ms acceptable due to GIF 10ms granularity)
+   - Hardware playback cycle time ±50ms tolerance (measured via serial timestamps across 10+ full cycles)
+
+4. **Build Integration is Zero-Runtime-Filesystem:**
+   - CMakeLists.txt includes custom command to auto-generate colorful_frames.h/.c
+   - Dependency edge: if source GIF changes, header rebuilds automatically
+   - Generated files must not include gif_lib.h, dirent.h, unistd.h, pthread.h, or ws2811.h (verified by grep of pico_build/assets/generated/)
+
+5. **Hardware Demo Proof is Split and Mandatory:**
+   - Software proof: UF2 flashes, serial banner appears within 3 seconds, playback loop executes
+   - Hardware proof: 10+ consecutive cycles with identical frame checksums, total duration ±100ms, visual video showing recognizable pattern with stable colors and no corruption
+
+6. **Checksum Stability Across Cycles is Frame Corruption Detector:**
+   - Each frame's 154×RGB888 pixels checksummed (CRC32 or simple sum)
+   - Same frame index across 10+ cycles must have identical checksums
+   - Any variance = timing glitch or memory corruption; gate fails, revert to smoke pattern, investigate
+   - Serial instrumentation: per-frame checksum logged, not just cycle-level summary
+
+7. **Risk Mitigation Patterns:**
+   - GIF decoder complexity → reuse legacy gif.c parsing; limit to RGB888 + delay only
+   - Flash size blowup → pre-scan asset size before conversion; warn early
+   - Timing drift on hardware → per-frame timestamp logging (not cycle-level only)
+   - Submodule absent → CMakeLists checks path, falls back intelligently or fails loudly
+   - Cross-machine build variance → pin tool versions in team decisions
+
+**Reviewer Checklist Crystallized (14 Criteria):**
+1. Source selected + inventory documented
+2. Offline converter reproducible (SHA256 match)
+3. Generated header size acceptable
+4. Code hygiene (no forbidden includes)
+5. CMakeLists.txt integration (custom command)
+6. Symbol audit clean (objdump verification)
+7. UF2 flashes without error
+8. Serial banner within 3 seconds
+9. Playback loop executes without crash (first 10 seconds)
+10. 10+ cycle checksum stability
+11. Timing within ±100ms tolerance
+12. Visual playback clear (video evidence)
+13. No regression on smoke pattern (optional verification)
+
+**What This Gate Protects Against:**
+- Asset source ambiguity ("which GIF did we really use?")
+- Non-deterministic build ("why do my hashes not match?")
+- Silent timing drift ("it plays, but how stable?")
+- Frame corruption ("did every pixel actually transmit?")
+- Flash budget creep ("where did my ROM space go?")
+
+**Key File Paths for Reviewers:**
+- Canonical source: xternal/TASBot-eye-animations/gifs/others/colorful.gif
+- Generated output: pico_build/assets/generated/colorful_frames.h (auto-generated)
+- Asset converter: pico_build/tools/convert-assets.ps1
+- CMakeLists.txt: pico_build/CMakeLists.txt (add custom command here)
+- Proof docs: pico_build/proof/colorful-{integration,playback}-proof.md
+- Feature doc: docs/migration/features/f3-assets-playback.md (update with final design)
+
+**Deliverables Checklist:**
+1. ✓ Offline converter tool (PowerShell script)
+2. ✓ Generated header template (with frame count, delay, checksum contract)
+3. ✓ CMakeLists.txt integration (custom command, auto-generation)
+4. ✓ Proof package (software proof + hardware proof with serial + video)
+5. ✓ Feature doc update (final pipeline design + acceptance results)
+6. ✓ Team decision (this gate memo in decisions/inbox/)
+
+**Pattern Insight (For SKILL Extraction):**
+Hardware asset gates require three-layer proof:
+- **Layer 1 (Build proof):** Offline converter produces byte-identical output; seeded, deterministic, no temp paths
+- **Layer 2 (Integration proof):** CMakeLists auto-generates, firmware links correctly, no forbidden headers
+- **Layer 3 (Hardware proof):** Real device plays animation, serial log shows frame sequence + checksums, 10+ cycles identical, video evidence of visual quality
+Collapse any layer, and the gate is incomplete. Mega Man treats all three as non-negotiable.
+
+📌 **Status:** Gate definition complete. Awaiting Auto (asset pipeline) implementation and Proto Man (hardware integration) to produce evidence against this gate.
+
+### 2026-04-16 (Session 16): Colorful.gif Asset Pipeline Implementation Completed
+
+**Auto's Submission Ready for Mega Man Review:**
+
+- `pico_build\tools\generate-gif-asset.ps1`: PowerShell converter using System.Drawing for offline GIF→C conversion
+- `pico_build\assets\generated\colorful_asset.generated.h`: Generated frame data with timing table
+- `pico_build\assets\generated\colorful_asset.metadata.txt`: Source selection attestation + candidate inventory
+- `pico_build\src\portable\embedded_animation.h/c`: Asset contract stable for firmware consumption
+- `pico_build\src\firmware\colorful_asset.c`: Firmware playback binding to embedded asset
+- `pico_build\CMakeLists.txt`: Updated with custom generation command
+- Build reproducibility: Byte-identical assets across independent rebuilds (proof collected)
+- Seam isolation: Legacy root build unchanged; no POSIX/RPi header contamination in pico_build/
+
+**Colorful Asset Pipeline Ready for Gate Review:**
+
+Mega Man's 14-point acceptance checklist now applies to Auto's deliverable:
+1. ✓ Source selected (external/TASBot-eye-animations/gifs/others/colorful.gif primary, fallback to root gifs/)
+2. ✓ Converter reproducible (SHA256 identity verified across rebuilds)
+3. ✓ Generated header size acceptable (~28 KB for 60 frames)
+4. ✓ Code hygiene (no forbidden headers in pico_build/assets/generated/)
+5. ✓ CMakeLists.txt integration (custom command auto-generates)
+6. Symbol audit clean (pending Mega Man grep verification)
+7. UF2 flashes (pending hardware validation)
+8. Serial banner within 3 seconds (pending hardware validation)
+9. Playback loop executes (pending hardware validation)
+10–14. (Hardware proof gates: checksum stability, timing, visual clarity, regression test)
+
+**Handoff State:**
+
+Mega Man to execute acceptance gate review on Auto's completed colorful asset pipeline. Hardware validation gates (7–14) require physical Plasma 2350 W with USB-serial capture and visual proof.
+

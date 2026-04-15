@@ -782,3 +782,225 @@ Flash `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` to the Plasma 2350 ha
 1. a ~30-second serial transcript covering at least 10 checksum-bearing smoke cycles,
 2. evidence that the ready banner appears within 3 seconds of reset,
 3. visual proof of RED left eye, GREEN right eye, BLUE nose, and WHITE alignment phases at ~750 ms each.
+
+
+--- MERGED FROM INBOX 2026-04-16T03:51:30Z ---
+
+### 22. # Auto Decision: colorful.gif asset pipeline
+
+## Summary
+
+For the first honest Phase 3 slice, the Pico build now owns an offline `colorful.gif` conversion path that emits generated C data under `pico_build\assets\generated\` and links that asset into the firmware image.
+
+## Decision
+
+1. Keep the conversion flow isolated under `pico_build\tools\` and `pico_build\assets\generated\`.
+2. Use a build-time PowerShell converter (`generate-gif-asset.ps1`) with `System.Drawing` so the Windows Pico path can regenerate the first asset without adding new third-party tooling.
+3. Make source selection explicit and reproducible:
+   - prefer `external\TASBot-eye-animations\gifs\`
+   - fall back to root `gifs\`
+   - fail loudly if the requested asset is missing from both pools
+4. Emit both generated frame data and a metadata sidecar so review can see which source was selected, what candidates existed, and what timing contract was compiled into the UF2.
+5. Treat the generated asset contract (`embedded_animation.*` + `colorful_asset.*`) as the seam for future playback work, so later phases can add more animations without changing the WS2812B PIO transport shape.
+
+## Why
+
+- This is the fastest reproducible path to get `colorful.gif` into the UF2 while keeping legacy sources untouched.
+- It matches the documented source-precedence rule and makes fallback behavior reviewable instead of implicit.
+- It gives firmware a stable asset API now, which reduces churn when the next pass expands beyond the first demo target.
+
+## Evidence
+
+- `pico_build\CMakeLists.txt`
+- `pico_build\tools\generate-gif-asset.ps1`
+- `pico_build\src\portable\embedded_animation.h`
+- `pico_build\src\firmware\colorful_asset.c`
+- `pico_build\assets\generated\colorful_asset.metadata.txt`
+
+
+---
+
+### 23. ---
+author: "Mega Man (Tester)"
+date: 2026-04-16
+subject: "Acceptance Gate: colorful.gif Asset Slice (F3 MVP Demo)"
+status: "published"
+---
+
+# Acceptance Gate: colorful.gif Asset Slice
+
+## Charter
+
+F3 is the first honest hardware demo phase. The gate closes when colorful.gif loops on the physical Plasma 2350 W array with verifiable frame fidelity, timing precision, and build reproducibility.
+
+## Canonical Source Selection
+
+**Rule 1: Source Precedence**
+1. Primary: xternal/TASBot-eye-animations/gifs/others/colorful.gif (submodule)
+2. Fallback: gifs/colorful.gif (legacy local, git-ignored)
+3. Failure: Explicit build error if neither exists
+
+**Required Evidence:**
+- Submodule state confirmed (.gitmodules + HEAD)
+- Comparison inventory (frame count, timing) in docs/migration/features/f3-assets-playback.md
+- CMakeLists.txt documents which source was selected
+
+---
+
+## Generated Asset Reproducibility
+
+**Rule 2: Offline Pipeline Byte-Identity**
+
+Conversion pipeline must produce byte-identical binary frames across two independent builds on the same machine.
+
+**Output Location:** pico_build/assets/generated/colorful_frames.h (or .c/.h pair)
+
+**Reproducibility Proof:**
+- Run converter twice in separate build directories
+- Compare SHA256 checksums of generated files
+- Requirement: Checksums must match exactly
+- Document reproduced hash in pico_build/proof/colorful-assets-proof.md
+
+**Size Constraint:**
+- Plasma 2350: ~252 KB usable flash
+- Single 60-frame animation @ 462 bytes/frame = ~28 KB (acceptable)
+- Warn if > 50 KB per animation
+
+---
+
+## Frame-Count and Timing Fidelity
+
+**Rule 3: Timing Contract**
+
+Generated animation must preserve original GIF's frame count and per-frame delays.
+
+**Proof Checklist:**
+1. Frame count match: COLORFUL_FRAME_COUNT == source_frame_count
+2. Delay preservation: ±1 unit (±10ms) acceptable
+3. Hardware timing: 10+ complete cycles, ±50ms tolerance per cycle
+
+**Serial Log Expected:**
+`
+[colorful] frame=0 delay=100ms ts=0
+[colorful] frame=1 delay=100ms ts=100
+...
+[colorful] cycle_complete total_ms=5900 expected_ms=6000 drift_ms=100 PASS
+`
+
+---
+
+## Build Integration
+
+**Rule 4: Firmware Embedding (Zero Runtime FS)**
+
+1. CMakeLists.txt includes custom command to auto-generate header
+2. Target dependency: if source GIF changes, header rebuilds
+3. tasbot_eyes_pico.elf links generated symbols (verify with objdump)
+4. NO forbidden includes in generated files (gif_lib, dirent, unistd, pthread, ws2811)
+
+**Verification:**
+`powershell
+grep -r "gif_lib|dirent|unistd|pthread|ws2811" pico_build/assets/generated/
+# Expected: 0 matches
+`
+
+---
+
+## First Hardware Demo
+
+**Rule 5: Visible Playback on Real Plasma 2350 W**
+
+**Prerequisites:**
+- Plasma 2350 W + 8×32 LED array wired to GPIO15
+- Serial port accessible (COM port on Windows)
+- UF2 flashes without error
+
+**Test Procedure:**
+1. Flash UF2 to device
+2. Capture serial output for 5+ minutes (10+ cycles)
+3. Verify frame checksums: identical across all cycles
+4. Measure cycle duration: ±100ms of expected GIF duration
+5. Record video: smooth transitions, no corruption, recognizable pattern
+
+**Expected Serial Pattern:**
+`
+[playback] anim=colorful frame=0 delay=100ms checksum=0xABCD1234
+...
+[playback] anim=colorful frame=59 delay=100ms checksum=0x11223344
+[playback] cycle_count=1 total_ms=6000 PASS
+`
+
+---
+
+## Reviewer Checklist (14 Criteria)
+
+| # | Criterion | Evidence | ☐ |
+|---|-----------|----------|---|
+| 1 | Source selected | docs/migration/features/f3-assets-playback.md lists chosen GIF + reason | ☐ |
+| 2 | Frame inventory documented | Submodule frame count, delays logged | ☐ |
+| 3 | Converter reproducible | Two builds produce identical .h checksums | ☐ |
+| 4 | Generated header size OK | < 100 KB total; logged in proof | ☐ |
+| 5 | Code hygiene | No forbidden headers in pico_build/assets/generated/ | ☐ |
+| 6 | CMakeLists.txt integrated | Custom command auto-generates on rebuild | ☐ |
+| 7 | Symbol audit clean | objdump shows colorful symbols, correct sizes | ☐ |
+| 8 | UF2 flashes | Bootloader accepts, no hang on boot | ☐ |
+| 9 | Serial ready | "tasbot_eyes pico_build ready" within 3 seconds | ☐ |
+| 10 | Playback loop runs | Frame sequence appears, no crash (first 10 seconds) | ☐ |
+| 11 | Checksum stable | 10+ cycle identical checksums | ☐ |
+| 12 | Timing accurate | Total cycle ±100ms of expected duration | ☐ |
+| 13 | Visual clear | Video shows pattern, stable colors, no corruption | ☐ |
+| 14 | No regression | Smoke pattern still works if invoked afterward (optional) | ☐ |
+
+---
+
+## Risks & Mitigations
+
+| Risk | Likelihood | Mitigation |
+|------|------------|-----------|
+| GIF decoder complexity | Medium | Reuse legacy gif.c parsing; limit to RGB888 + delay |
+| Flash size blowup | Low | Pre-scan asset size; warn > 50 KB |
+| Timing drift | Medium | Per-frame timestamp logging (not just cycle-level) |
+| Cross-machine variance | Low | Pin tool/CMake/compiler versions in decisions |
+| Submodule absent | Medium | CMakeLists checks path, falls back or fails loudly |
+| Asset overwrite | Low | .gitignore in pico_build/assets/generated/ |
+
+---
+
+## Out of Scope (Defer to F4)
+
+- Serial command injection / animation queue
+- Other animations (base, blink, startup)
+- Color post-processing, gamma, brightness
+- Smooth frame rate (16ms jitter)
+- Power measurement
+- SD card loading
+
+---
+
+## Deliverables (To Merge)
+
+1. **Offline Converter** — pico_build/tools/convert-assets.ps1
+2. **Generated Header** — pico_build/assets/generated/colorful_frames.h (auto-generated)
+3. **CMakeLists.txt Update** — Custom command + link integration
+4. **Proof Document** — pico_build/proof/colorful-integration-proof.md + colorful-playback-proof.md
+   - Source GIF path + selection reason
+   - Generated asset size & checksums
+   - Serial playback log (10+ cycles)
+   - Video/photo evidence
+5. **Feature Doc** — Update docs/migration/features/f3-assets-playback.md with final design
+6. **Team Decision** — This memo
+
+---
+
+## Rationale
+
+This gate treats the colorful.gif asset slice as a regression checkpoint, not a hope. It requires:
+
+1. **Canonical source** (no ambiguity on which GIF was selected)
+2. **Reproducible generation** (asset format is locked, build is deterministic)
+3. **Timing fidelity** (embedded delays are preserved, not guessed)
+4. **Hardware proof** (not just "looks right in simulation"; real Plasma 2350 playback with serial capture)
+
+This is Mega Man: no "probably still works." We build the evidence wall.
+
+
