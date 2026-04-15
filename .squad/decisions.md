@@ -472,3 +472,76 @@ tasbot_eyes/
 **Reference:** `.squad/decisions/inbox/mega-man-review-pico-scaffold.md`
 
 ---
+
+### 18. F1 Proof Revision & Approval (Dr. Light + Mega Man)
+
+**Date:** 2026-04-16  
+**Owner:** Dr. Light (revision), Mega Man (review approval)  
+**Status:** APPROVED FOR F1 COMPLETION  
+**Risk:** Low (hardware gate deferred to Phase 2)
+
+**Summary:** Dr. Light revised the Pico foundation proof to separate software artifact reproducibility from hardware serial readiness. Mega Man approved the software-side proof as honest, reproducible, and suitable for F1 completion.
+
+**Proof Lanes:**
+1. **Local build identity:** Fresh `pico_build\` configure/build reproduces `.elf`, `.bin`, `.hex`, `.uf2`, `.dis`, and records artifact hashes (software proof lane PASSED)
+2. **Hardware serial-ready gate:** Explicitly deferred to Phase 2; only closes when a captured board transcript shows the ready banner within 3 seconds of reset (OPEN pending hardware capture)
+
+**Evidence:**
+- `pico_build\tools\collect-proof.ps1` reproduces Pico SDK configure and firmware artifacts
+- `pico_build\proof\foundation-proof.md` honestly scopes software proof and leaves hardware gate open
+- Fresh root build still fails on missing legacy dependencies (isolation confirmed)
+- Mega Man reproduced proof script in both default and explicit build directories; artifact hashes match
+
+**Consequences:**
+- F1 software foundation proof-of-concept **ACCEPTED**
+- Root legacy build remains uncontaminated; continues serving as regression evidence
+- Hardware-attached gate will use `pico_build\tools\collect-proof.ps1 -SerialPort COMx` path in Phase 2
+- Reviewers can approve F1 scaffold as reproducible even with Pico absent
+
+**Non-blocking Note:** Proof command and hashes should be aligned (current `foundation-proof.md` lists hashes from specific `-BuildDir` argument but reproduction command omits it)
+
+**Reference:** `.squad/decisions/inbox/dr-light-revise-pico-proof.md`, `.squad/decisions/inbox/mega-man-review-proof-revision.md`
+
+---
+
+### 19. Runtime Seam Slice Approval (Mega Man)
+
+**Date:** 2026-04-16  
+**Owner:** Mega Man (reviewer)  
+**Status:** APPROVED AS PHASE 2 STARTING POINT  
+**Risk:** Low (seam is concrete; implementation ready)
+
+**Summary:** Mega Man approved Proto Man's Phase 2 runtime seam design. Isolation held, host dependency leak check passed, seam boundary is concrete and aligned with feature documentation.
+
+**What Passed:**
+1. **Isolation rule held:** Root legacy sources untouched; new work under `pico_build\`
+2. **Host dependency leak check:** No forbidden POSIX/RPi headers in `pico_build\src\firmware\` or `pico_build\src\portable\`
+3. **Seam is concrete:** Agreed boundary: `logical 28x8 frame → TASBot layout mapper → 154 RGB888 transport buffer → firmware hw_led sink`
+4. **Geometry carryover:** `pico_build\src\portable\tasbot_layout.c` and `smoke_patterns.c` preserve legacy TASBot mapping in portable code
+
+**Seam Design (Approved):**
+- **`pico_build\src\portable\`** — deterministic frame generation and TASBot-specific layout mapping
+- **`pico_build\src\firmware\`** — board startup, timing cadence, `hw_led_present_rgb888()` transport boundary
+
+**Build Status Note:** Fresh Pico configure in `pico_build\build\review-4\` shows correct target includes; build blockage in `picotool` host sub-build does NOT invalidate seam decision but keeps runtime slice short of full validation gate.
+
+**Next Measurable Step:** Fix Pico host-tool build path to emit `tasbot_eyes_pico.elf` and `.uf2`, then capture USB-serial ready banner plus one full four-phase smoke-pattern cycle from hardware.
+
+**Reference:** `.squad/decisions/inbox/mega-man-review-runtime-seam.md`
+
+---
+
+### 20. User Directive: WS2812B + PIO LED Output
+
+**Date:** 2026-04-15  
+**By:** Fortinbra (user, via Copilot)  
+**Status:** CAPTURED FOR TEAM MEMORY  
+**Risk:** None (foundational requirement clarification)
+
+**Directive:** The LED array is all WS2812B LEDs, and the Pico implementation should use PIO for LED output.
+
+**Consequence:** Phase 2 WS2812B-over-PIO runtime work is now the active next slice.
+
+**Reference:** `.squad/decisions/inbox/copilot-directive-2026-04-15T02-46-38Z.md`
+
+---

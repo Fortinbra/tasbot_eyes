@@ -29,3 +29,14 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - Platform shell wholesale replacement confirmed
 - Architectural blockers escalated for team/hardware clarification
 - Asset handling confirmed as most visible breaking change for users
+
+### 2026-04-16 (Session 12): Runtime Seam Slice Approved for Phase 2
+
+- Mega Man approved Proto Man's runtime seam design as Phase 2 starting point.
+- Isolation rule held: `pico_build\` stays clean of POSIX/RPi headers; seam boundary concrete and measurable.
+- **Approved Seam:** `logical 28x8 frame → TASBot layout mapper → 154 RGB888 transport buffer → firmware hw_led sink`
+- **Portable layer:** `pico_build\src\portable\tasbot_layout.c`, `smoke_patterns.c` — deterministic frame generation and geometry mapping
+- **Firmware layer:** `pico_build\src\firmware\main.c`, `hw_led_stub.c`, `board.h` — startup, timing cadence, transport boundary
+- Next step: Fix Pico host-tool build path to emit `.elf`/`.uf2`; capture USB-serial ready banner plus full smoke-pattern cycle from hardware.
+- WS2812B-over-PIO implementation approved for Phase 2 work once hardware board wiring is confirmed.
+

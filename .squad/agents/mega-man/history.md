@@ -28,6 +28,9 @@ Migration success needs clear behavior checkpoints because the runtime platform 
 - Fresh review configure for `pico_build\` proved the firmware target now compiles the intended seam files (`main.c`, `hw_led_stub.c`, `tasbot_layout.c`, `smoke_patterns.c`) without pulling in forbidden host headers, even though the build still stops later in the `picotool` host sub-build.
 - Root legacy validation remains a regression checkpoint, not a portability target: a fresh Windows build still fails on the same legacy host gaps (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`), which is useful evidence that `pico_build\` has not contaminated the original sources.
 - Key review artifacts for this seam: `pico_build\build\review-4\build.ninja` (fresh source list proof), `docs\migration\features\f2-core-runtime.md` (approved seam contract), and `pico_build\src\portable\tasbot_layout.c` plus `smoke_patterns.c` (geometry and deterministic smoke phases).
+- Revised F1 proof is acceptable as software-side foundation when `pico_build\tools\collect-proof.ps1` reproduces fresh Pico artifacts, `pico_build\proof\foundation-proof.md` honestly leaves the serial-ready gate open, and a fresh root build still fails only on legacy host dependencies.
+- The proof hashes for `tasbot_eyes_pico.elf`, `.dis`, and `.elf.map` are build-path-sensitive; the recorded values in `pico_build\proof\foundation-proof.md` match `-BuildDir C:\ws\tasbot_eyes\pico_build\build\dr-light-proof`, not the script's default `proof-run` directory.
+- Current F1 firmware remains a stub transport (`pico_build\src\firmware\hw_led_stub.c`); the confirmed WS2812B hardware path still needs explicit board/protocol configuration plus PIO-backed output proof in later validation.
 
 **Team Alignment (2026-04-15):**
 - Six regression checkpoints approved as merge gates (not aspirations)
@@ -95,3 +98,18 @@ Migration gates follow regression-thinking model: start from expected behavior (
 - Dr. Light completed revision for rejected F1 proof slice
 - Delivered: `pico_build/tools/collect-proof.ps1` (reproducible proof script), `pico_build/proof/foundation-proof.md` (recorded proof package), tightened migration docs (software artifact proof vs hardware serial proof)
 - Mega Man re-reviewing this revision on a separate track (not logged as completed yet)
+
+### 2026-04-15 (Session 11): Dr. Light F1 Proof Revision — Approved as Software Proof
+
+- Reproduced `collect-proof.ps1` successfully in both `pico_build\build\proof-run` and `pico_build\build\dr-light-proof`; the latter matches the published proof table exactly.
+- Reproduced the root baseline regression check with a fresh Visual Studio build; it still fails on legacy dependency gaps (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`), so the Pico slice has not contaminated the original build.
+- Approved `pico-build` as complete for software-side F1 foundation only; hardware-attached proof remains open until a captured serial log shows `tasbot_eyes pico_build stub ready` within 3 seconds and later work replaces the stub LED sink with the required WS2812B PIO path.
+
+### 2026-04-16 (Session 12): F1 Foundation Approval Finalized
+
+- F1 proof revision approved as complete for software-side work; Proto Man's runtime seam also approved as Phase 2 starting point.
+- User directive captured: LED array is all WS2812B; Pico implementation should use PIO output.
+- All three approvals merged into team decisions log (entries 18–20).
+- Decision inbox merged and cleared.
+- Next active slice: WS2812B-over-PIO runtime work (Phase 2 batch); Proto Man and Mega Man moving to parallel Phase 2 work.
+

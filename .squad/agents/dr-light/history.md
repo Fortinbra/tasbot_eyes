@@ -142,3 +142,15 @@ Dr. Light leads the Pico SDK migration architecture.
 - A rejected migration slice usually needs better proof packaging, not necessarily more architecture.
 - Repeating the ready banner inside the gate makes serial bring-up evidence less brittle without increasing coupling.
 - Review docs should state plainly when hardware evidence is pending instead of letting a source-level stub masquerade as a passed runtime gate.
+
+### 2026-04-16 (Session 12): F1 Foundation Proof Approved for Software-Side Completion
+
+- Mega Man approved Dr. Light's proof revision as complete for software-side F1 foundation work.
+- All key deliverables reproduced and verified:
+  - `pico_build\tools\collect-proof.ps1` reproducibly generates Pico SDK artifacts (`.elf`, `.bin`, `.hex`, `.uf2`, `.dis`, `.elf.map`)
+  - `pico_build\proof\foundation-proof.md` honestly documents software proof and leaves serial-ready gate open pending hardware capture
+  - Fresh root build still fails on pre-existing legacy dependencies; isolation confirmed
+- **Hardware-attached gate deferred to Phase 2:** Requires captured serial transcript showing `tasbot_eyes pico_build stub ready` within 3 seconds of reset.
+- **F1 software foundation status:** APPROVED. Pico `pico_build\` slice is reproducible, isolated, and suitable for Phase 2 kickoff.
+- Minor documentation note: Future proof runs should align recorded hashes with reproduction command (current hashes match `-BuildDir C:\ws\tasbot_eyes\pico_build\build\dr-light-proof`, while command omits explicit path).
+
