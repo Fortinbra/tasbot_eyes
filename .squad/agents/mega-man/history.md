@@ -31,6 +31,9 @@ Migration success needs clear behavior checkpoints because the runtime platform 
 - Revised F1 proof is acceptable as software-side foundation when `pico_build\tools\collect-proof.ps1` reproduces fresh Pico artifacts, `pico_build\proof\foundation-proof.md` honestly leaves the serial-ready gate open, and a fresh root build still fails only on legacy host dependencies.
 - The proof hashes for `tasbot_eyes_pico.elf`, `.dis`, and `.elf.map` are build-path-sensitive; the recorded values in `pico_build\proof\foundation-proof.md` match `-BuildDir C:\ws\tasbot_eyes\pico_build\build\dr-light-proof`, not the script's default `proof-run` directory.
 - Current F1 firmware remains a stub transport (`pico_build\src\firmware\hw_led_stub.c`); the confirmed WS2812B hardware path still needs explicit board/protocol configuration plus PIO-backed output proof in later validation.
+- Revised Phase 2 WS2812B-over-PIO software proof is acceptable when `pico_build\src\firmware\board.h` makes the WS2812B/GPIO15/154-pixel/750 ms contract explicit and `pico_build\tools\collect-proof.ps1` defaults to the same `pico_build\build\ws2812-proof` directory named in `pico_build\proof\foundation-proof.md`.
+- Review line stays split: local sign-off can cover source contract, seam isolation, and reproducible Pico artifacts, but hardware-attached acceptance still needs a real Plasma 2350 run with serial capture, 10+ checksum cycles, and visual four-phase smoke confirmation.
+- Key Phase 2 proof files to re-check on future revisions: `pico_build\src\firmware\board.h`, `pico_build\src\firmware\hw_led_pio.c`, `pico_build\src\firmware\main.c`, `pico_build\tools\collect-proof.ps1`, and `pico_build\proof\foundation-proof.md`.
 
 **Team Alignment (2026-04-15):**
 - Six regression checkpoints approved as merge gates (not aspirations)

@@ -745,3 +745,40 @@ The rejected WS2812B-over-PIO slice did not need a new architecture. It needed t
 2. Capture USB-serial output with 10+ deterministic checksum cycles
 3. Capture visual proof of the four smoke phases on the real array
 
+
+
+---
+
+### Merged from Inbox\n
+# Mega Man: Dr. Light WS2812B-over-PIO Re-review
+
+**Date:** 2026-04-15  
+**Requested by:** Fortinbra  
+**Verdict:** Software/build proof ACCEPTED in this environment; hardware-attached proof remains OPEN
+
+## What passed
+
+1. `pico_build\src\firmware\board.h` now makes the board/protocol contract explicit enough for review: WS2812B-only, 154 pixels, 750 ms smoke cadence, and GPIO resolved through board macros with GPIO15 as the documented fallback.
+2. `pico_build\src\firmware\hw_led_pio.c` keeps the Phase 2 seam intact: portable code hands over a 154-entry RGB888 transport buffer, and the firmware layer alone performs WS2812B/PIO packing and transmission.
+3. `pico_build\tools\collect-proof.ps1` now defaults to `C:\ws\tasbot_eyes\pico_build\build\ws2812-proof`, which matches the build directory named in `pico_build\proof\foundation-proof.md`; a fresh local rerun reproduced the published artifact sizes and hashes.
+4. Fresh root baseline review still failed only on the expected legacy host gaps (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`), which is the right regression story for this migration phase.
+
+## What did NOT pass yet
+
+This is **not** full hardware sign-off. In this environment there was no attached Pico serial/RP2 device, and the proof package does not include:
+
+- a captured serial transcript from real hardware showing the ready banner inside 3 seconds,
+- 10+ consecutive smoke-cycle checksum lines from the physical board,
+- visual confirmation (photo/video or equivalent reviewer-visible evidence) that the four smoke phases render correctly on the real 8x32 array.
+
+## Decision
+
+Approve this slice as **software-side Phase 2 WS2812B-over-PIO proof only**. Do **not** represent it as hardware-complete sign-off.
+
+## Next measurable validation step
+
+Flash `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` to the Plasma 2350 hardware, then run `powershell -ExecutionPolicy Bypass -File pico_build\tools\collect-proof.ps1 -SerialPort COMx` and submit:
+
+1. a ~30-second serial transcript covering at least 10 checksum-bearing smoke cycles,
+2. evidence that the ready banner appears within 3 seconds of reset,
+3. visual proof of RED left eye, GREEN right eye, BLUE nose, and WHITE alignment phases at ~750 ms each.
