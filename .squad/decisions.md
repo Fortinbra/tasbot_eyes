@@ -545,3 +545,121 @@ tasbot_eyes/
 **Reference:** `.squad/decisions/inbox/copilot-directive-2026-04-15T02-46-38Z.md`
 
 ---
+
+
+--- MERGED FROM INBOX 2026-04-15T03:11:42Z ---
+
+# Proto Man: WS2812B PIO Backend for Phase 2
+
+**Date:** 2026-04-16 (Session 13)  
+**Requested by:** Fortinbra
+
+## Summary
+
+The Pico-side `hw_led` seam now moves real pixels instead of swallowing metrics. The implementation uses a single-state-machine WS2812 PIO program, takes the existing 154-entry RGB888 transport buffer unchanged, repacks to WS2812 GRB order in the driver, and keeps the rest of the runtime seam untouched.
+
+## Decision
+
+1. Keep the approved seam exactly as-is: `logical 28x8 frame -> TASBot mapper -> 154 RGB888 transport buffer -> hw_led sink`
+2. Implement the transport in `pico_build\src\firmware\hw_led_pio.c`
+3. Drive WS2812B with Pico PIO at 800 kHz and an 80 µs reset window
+4. Resolve the data pin from board macros first, with a hard fallback to GPIO 15 for Plasma hardware alignment
+5. Track both `ws2812.pio` and the generated `ws2812.pio.h` in-tree so the Pico build does not depend on rebuilding `pioasm` from source on this Windows workstation
+
+## Why
+
+- The hardware statement is now clear: the array is WS2812B, so the transport should use the Pico's deterministic hardware path rather than a fake sink.
+- The portable runtime already stops at RGB888; repacking inside `hw_led` keeps geometry and transport concerns separate.
+- Clean builds mattered more than purity here. The local Pico SDK could build firmware fine, but rebuilding SDK `pioasm` from source was blocked by host C++ environment friction. Committing the generated header preserves the standard PIO program while keeping the build reproducible.
+
+## Evidence
+
+- `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` now builds successfully
+- `pico_build\proof\foundation-proof.md` refreshed with the new artifact hashes
+- Legacy root build still fails only on pre-existing host dependencies, not because of `pico_build\` contamination
+
+## Follow-up
+
+1. Flash the UF2 to real hardware and capture the four-phase smoke pattern plus serial checksums
+2. If refresh rate needs to increase later, the next obvious extension is DMA-fed PIO without changing the current seam
+
+
+---
+
+# Mega Man: WS2812B + PIO Proof Gate Definition
+
+**Date:** 2026-04-16 (Session 12)
+**Task:** Define measurable success criteria for WS2812B over PIO + four-phase smoke pattern slice (Phase 2.1 → Phase 3 bridge)
+**Requested by:** Fortinbra
+
+## Summary
+
+The next runtime slice must deliver real LED output backed by Pico PIO instead of the current stub. Success is NOT "the code compiles" or "it might work." Success is:
+
+1. **Build proof:** Firmware compiles + links PIO support; no forbidden headers
+2. **Pin/timing expectations:** oard.h declares GPIO, protocol (WS2812B), and frame rate explicitly
+3. **Visible hardware behavior:** Physical 8x32 array shows deterministic four-phase pattern (RED left eye, GREEN right eye, BLUE nose, WHITE alignment) at ~750ms per phase
+4. **Frame rate stability:** ±50ms drift tolerance; checksums are identical across cycles
+
+## Four-Phase Smoke Pattern (Proven Portable Logic)
+
+From \pico_build\src\portable\smoke_patterns.c\:
+- **Phase 0:** Left eye RED outline (8 pixels, x=0–7 y=2–5)
+- **Phase 1:** Right eye GREEN outline (8 pixels, x=20–27 y=2–5)
+- **Phase 2:** Nose field BLUE (20–30 pixels in logical center, x=9–18 y=1–7)
+- **Phase 3:** Alignment WHITE (6 corner/center markers: (2,0), (5,7), (22,0), (25,7), (13,1), (14,6))
+
+Each phase lasts ~750ms; all 4 cycle repeats every ~3 seconds indefinitely.
+
+## Hardware Expectations
+
+- **Board:** Plasma 2350 W (RP2350A, 150 MHz, 256 KB SRAM, 4 MB flash)
+- **LED Protocol:** WS2812B single-wire Neopixel (~800 kHz bit clock)
+- **Pixel Count:** 154 physical LEDs (8×32 array, 8 bits mapped to logical 28×8 frame)
+- **GPIO Pin:** Defined in \oard.h\ after physical wiring confirmed (Fortinbra action)
+- **PIO Resource:** One PIO state machine (PIO0 or PIO1, TBD based on final driver design)
+
+## Acceptance Criteria Map
+
+| Gate | Proof | Verifiable By |
+|---|---|---|
+| Build | \	asbot_eyes_pico.elf\ exists, reproducible across clean builds; no forbidden headers | \ile build/tasbot_eyes_pico.elf\; \grep -r ws2811\\\\|pthread\\\\|gif_lib pico_build/src/\ |
+| Pin Config | \oard.h\ defines \TASBOT_WS2812B_DATA_PIN\, \TASBOT_WS2812B_PIXEL_COUNT\, \TASBOT_FRAME_RATE_HZ\, \TASBOT_LED_PROTOCOL\ | Read source; cross-check pin vs. Plasma schematic |
+| Visible | Each phase lights correct region in correct color on physical array for ~750ms | USB serial log (4+ cycles) + photo/video of each phase |
+| Stability | Frame checksums identical across 10+ consecutive cycles; no crashes | Serial output consistency; 30-second observation with no resets |
+
+## Deliverables Expected from Proto Man
+
+- Revised \src/firmware/hw_led.c\ (real impl, no stub)
+- Updated \oard.h\ with concrete GPIO + protocol config
+- Clean \pico_build/build/\ artifacts (\.elf\, \.uf2\)
+- Serial capture log (timestamp, phases, checksums) from physical board
+- Visual evidence (photo/video) of four-phase pattern on 8×32 array
+
+## Out of Scope for This Gate (Deferred to F3+)
+
+- Animation asset loading from GIF files
+- Serial command injection (UART animation queue)
+- Color dynamics (fades, brightness modulation)
+- Frame rate smoothness (timing jitter < 16ms for 60 Hz feel)
+
+These remain Phase 3+ work; this gate only validates that the physical transport layer works correctly and is ready for asset integration.
+
+## Risk Mitigations & Fallback
+
+If PIO approach hits unexpected blocker:
+- GPIO conflict → reassign pin (documented in \oard.h\)
+- PIO timing margin too tight → unlikely (800 kHz on 150 MHz Pico is not critical), but can switch to DMA-assisted bitbang as fallback
+- Byte order mismatch (RGB vs BGR) → swap in hardware mapping table, visible on first test
+- Firmware instability → implement watchdog timeout in LED emission loop; revert to stub if needed
+
+## Sign-Off
+
+**Gate is OPEN.** Proto Man to implement.
+
+**Mega Man will re-review** once:
+1. Build proof artifact is submitted
+2. Serial capture + photos of physical hardware behavior are provided
+3. All checksums from 10+ consecutive cycles match within serial log
+
+Rejection or re-request for revision will be documented in project history with root cause.

@@ -113,3 +113,64 @@ Migration gates follow regression-thinking model: start from expected behavior (
 - Decision inbox merged and cleared.
 - Next active slice: WS2812B-over-PIO runtime work (Phase 2 batch); Proto Man and Mega Man moving to parallel Phase 2 work.
 
+### 2026-04-16 (Session 12): WS2812B + PIO Proof Gate Defined
+
+**Task:** Define measurable success criteria for the next runtime slice: WS2812B over PIO plus four-phase smoke pattern.
+
+**Key Architecture Decisions Captured:**
+
+1. **Proof is Split Across Two Layers:**
+   - **Build Proof:** Firmware compiles + links Pico PIO support; no forbidden headers in pico_build/src/
+   - **Hardware Proof:** Physical 8×32 array shows deterministic four-phase pattern with specific colors at specific timings
+
+2. **Four-Phase Smoke Test (Proven Portable, From smoke_patterns.c):**
+   - Phase 0 (750ms): Left eye RED (8 pixels x=0–7 y=2–5)
+   - Phase 1 (750ms): Right eye GREEN (8 pixels x=20–27 y=2–5)
+   - Phase 2 (750ms): Nose BLUE (20–30 pixels x=9–18 y=1–7)
+   - Phase 3 (750ms): Alignment WHITE (6 markers at corners and center)
+   - Cycles repeat every ~3 seconds indefinitely
+
+3. **Hardware Expectations (Based on Plasma 2350 W Board):**
+   - WS2812B single-wire Neopixel protocol (~800 kHz bit clock)
+   - 154 physical LEDs (8×32 array)
+   - GPIO pin assignment must be explicit in oard.h (value TBD after physical wiring confirmed by Fortinbra)
+   - One PIO state machine (PIO0 or PIO1, design-dependent)
+
+4. **Acceptance Criteria Are Concrete, Not Vibes:**
+   - Build artifacts must be reproducible (two clean builds = identical .elf)
+   - Serial output must match expected phase log within 3 seconds
+   - Frame checksums must be identical across 10+ consecutive cycles
+   - Visual observation: each phase lights correct region in correct color for ~750ms
+   - Timing drift tolerance: ±50ms per phase (750ms baseline)
+
+5. **What Is NOT in This Gate (Deferred to F3+):**
+   - Animation asset loading (GIF playback)
+   - Serial command injection (animation queue)
+   - Color dynamics (fades, brightness)
+   - Frame rate smoothness for animation feel (16ms jitter)
+
+6. **Risk Mitigations Documented:**
+   - GPIO conflict → reassign pin, document in oard.h
+   - PIO timing tight → unlikely on 150 MHz Pico, but DMA fallback exists
+   - Byte order mismatch → visible on first test with color regions, easy to fix
+   - Firmware instability → implement watchdog timeout, revert to stub if needed
+
+**Key File Paths (Current State):**
+- pico_build/src/firmware/main.c — boots, runs smoke pattern loop
+- pico_build/src/firmware/hw_led_stub.c — currently a stub (always returns true, no real output)
+- pico_build/src/firmware/board.h — currently has boot banners, needs GPIO + protocol config
+- pico_build/src/firmware/hw_led.h — abstract interface (to be implemented)
+- pico_build/src/portable/smoke_patterns.c — proven deterministic four-phase logic
+- pico_build/src/portable/tasbot_layout.c — proven 154-pixel physical mapping
+- pico_build/CMakeLists.txt — must link Pico PIO support
+
+**Team Decision Artifact:** .squad/decisions/inbox/mega-man-pio-proof-gate.md — complete proof gate for WS2812B + PIO slice, ready for Proto Man implementation.
+
+**Pattern Reuse:** Hardware proof gates require evidence split into build artifact proof (hashes, symbol audit, fresh rebuild) and visible behavior proof (serial capture, photos, checksums). Regression thinking applies: start from known working state (stub firmware boots), add hardware requirement (physical LEDs light), measure stability (checksum consistency), and document fallback (revert to stub if unstable).
+
+📌 **2026-04-16 (Session 13):** WS2812B PIO Review Gate defined and Proto Man handoff accepted.
+- Gate definition: Build reproducibility, pin config verification, four-phase smoke pattern visibility, frame stability (±50ms)
+- Acceptance criteria: UF2 builds, board.h config present, serial capture shows 10+ consistent cycles, photo/video of hardware
+- Four-phase pattern: RED left eye → GREEN right eye → BLUE nose → WHITE alignment (each ~750ms)
+- Deliverables pending: Serial checksums, physical hardware evidence
+- Status: AWAITING Proto Man proof submission, will re-review upon completion
