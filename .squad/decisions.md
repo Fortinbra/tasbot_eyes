@@ -148,6 +148,41 @@
 
 ---
 
+### 7. Plasma 2350 W Hardware Specification — Risk Mitigation & Board Selection Validation
+**Date:** 2026-04-15  
+**Owner:** Auto, Dr. Light  
+**Status:** RISK MITIGATED; ARCHITECTURE VALIDATED
+
+**Summary:** Research into Pimoroni's official Plasma 2350 W documentation confirms board specifications align with migration strategy and closes two medium-impact risks.
+
+**Hardware Facts:**
+- **MCU:** RP2350A (dual Cortex M33 @ 150 MHz, 520 KB SRAM, 4 MB QSPI flash)
+- **LED Protocols:** WS2812B/Neopixel (single-wire, ~800 kHz) and APA102/Dotstar (dual-wire, SPI-like) via labeled screw terminals
+- **Wireless (Optional):** CYW43439 module (802.11 b/g/n + Bluetooth); out-of-scope for v1
+- **Power:** USB-C 3A; adequate for 256 LEDs @ 60 mA typical draw
+- **Stepping:** A4 current stock (no errata); A2 variants have pull-down sensitivity issue (not relevant to LED output)
+
+**Risk Mitigations:**
+
+| Risk | Before | After | Reason |
+|------|--------|-------|--------|
+| Board electrical spec unclear | Medium | Low | Pimoroni documentation authoritative; WS2812B/APA102 are standard, not proprietary |
+| Flash space insufficient for assets | Medium | Low | 4 MB QSPI flash supports 10–20 embedded animations @ 50–100 KB each; Option A (offline GIF→frame) now high-confidence |
+| SRAM for animation buffers | Low | Very Low | 520 KB vs. RP2040's 264 KB; double-buffered 8×32 RGB rendering needs ~32 KB |
+| LED timing too strict for Pico | Low | Low | RP2350A @ 150 MHz and PIO make WS2812B/APA102 bitbanging straightforward |
+
+**Architecture Impact:** NONE. Four-Phase migration strategy (Decisions #1, #5) remains unchanged. Phases 1–4 dependencies, critical path, acceptance criteria all unchanged.
+
+**Sequencing Impact:** NONE. Board selection risk was a dependency blocker for Phase 1 kickoff; now cleared without reordering.
+
+**Outstanding Action Item:**
+- Confirm LED protocol wiring (WS2812B vs. APA102) by physical unit inspection or schematic review (Fortinbra)
+- Phase 1 deliverable: `src/firmware/board.h` with GPIO pin assignments and protocol selection
+
+**Reference Materials:** Pimoroni Plasma 2350 W shop page; Pimoroni plasma MicroPython repo (github.com/pimoroni/plasma); target board schematic (PDF from shop).
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

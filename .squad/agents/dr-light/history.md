@@ -87,3 +87,66 @@ Migration work will need architecture decisions around hardware control, asset h
 2. **Coder:** Implement F1-1 (Define Hardware LED Interface); this is the foundation.
 3. **Dr. Light:** Gate F1-2 and F1-3 after architecture review; checkpoint gates prevent rework.
 4. Continue through phases; all work flows through checkpoint gates to ensure quality.
+
+### Session 4 (2026-04-15)
+
+**Completed:**
+- Reviewed Pimoroni Plasma 2350 W board specification (shop page + Pimoroni plasma GitHub repo).
+- Analyzed impact on architecture, sequencing, and risk profile.
+- Cross-checked board specs against Phase 1–4 assumptions in FEATURE_BREAKDOWN.md.
+- Recorded decision in `.squad/decisions/inbox/dr-light-board-analysis.md`.
+
+**Board Analysis Summary:**
+
+**Key Findings:**
+1. ✅ **Plasma 2350 W validates all three critical assumptions:**
+   - Standard LED protocols: WS2812B + APA102 (as designed in hw_led abstraction)
+   - Adequate flash: 4 MB (vs. 2 MB RP2040)
+   - Mature reference code: Pimoroni plasma MicroPython repo available
+
+2. ✅ **RP2350A processor is a straight upgrade:**
+   - Faster (150 MHz vs. 125 MHz); larger RAM (520 KB vs. 264 KB)
+   - No architectural changes needed; net positive on headroom
+   - Zero code impact
+
+3. ✅ **Asset ROM budget risk drops from "medium" to "low":**
+   - 4 MB flash enables 3.5 MB asset budget (vs. 1.5 MB on RP2040)
+   - Eliminates F3 blocker "flash space too tight"
+   - Allows 10+ embedded animations without SD card fallback
+
+4. ✅ **Wireless (CYW43439 RM2) is out-of-scope bonus:**
+   - Not required for v1 (local playback)
+   - Hardware ready if v2 wants UDP injection or WLED realtime
+   - No code changes; Phase 4 cleanup documents for future reference
+
+5. ⚠️ **RP2350 A4 stepping is current; A2 variants have errata (not code-relevant):**
+   - A2 errata (E9) affects input pull-down sensitivity
+   - Not applicable to LED output; procurement awareness only
+
+**Architecture Impact:** NONE. hw_led.h abstraction was designed for exactly these protocols. No code changes needed.
+
+**Sequencing Impact:** NONE. Phase 1 → 4 remains locked. No reordering required.
+
+**Risk Profile Impact:**
+| Risk | Before → After |
+|------|--------|
+| Flash space insufficient | Medium → Low |
+| LED timing too strict | Low → Low (RP2350A @ 150 MHz makes bitbanging easier) |
+| RAM for animation buffers | Low → Very Low (520 KB vs. 264 KB) |
+| Board electrical spec unclear | Medium → Low (Pimoroni docs are authoritative) |
+
+**Technical Reference (Phase 1 Kickoff):**
+- LED protocols: WS2812B (single-wire, ~800 kHz) or APA102 (clock+data, SPI-like)
+- Phase 1 owner must document exact GPIO pins by cross-referencing Plasma 2350 W schematic + Pimoroni plasma MicroPython source
+
+**Decision for Team:**
+✅ Proceed with FEATURE_BREAKDOWN.md as-is; no sequencing changes.
+✅ Downgrade Phase 3 asset risk from "medium" to "low" in risk register.
+✅ Update decisions.md with improved risk profile snapshot.
+⚠️ Confirm procurement sources RP2350 A4 stepping (current stock, not older A2 variants).
+
+**Learnings:**
+- Board selection risk was premature: vendor documentation and reference implementations exist and validate our assumptions.
+- Sequencing lock is sound: the critical path (F1 HW → F2 threading → F3 assets → F4 cleanup) is the right order.
+- Risk mitigation works: by deferring board-specific details to Phase 1, we've kept architecture flexible and can adapt to RP2350A advantages without cascade.
+- Reference code matters: Pimoroni's MicroPython plasma repo is a good validation source for Phase 2 (timer/ISR) and Phase 3 (asset loading patterns).
