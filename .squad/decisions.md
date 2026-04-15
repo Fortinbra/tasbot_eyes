@@ -1004,3 +1004,65 @@ This gate treats the colorful.gif asset slice as a regression checkpoint, not a 
 This is Mega Man: no "probably still works." We build the evidence wall.
 
 
+
+---
+
+## MERGED DECISION (2026-04-15T03:56:30Z)
+
+### Mega Man Review: colorful.gif Asset Pipeline - APPROVED
+
+**Date:** 2026-04-15T03:56:30Z  
+**Reviewer:** Mega Man  
+**Status:** ACCEPTED (Phase 3 Software Milestone, Hardware Gate Open)
+
+# Mega Man review: colorful pipeline
+
+## Verdict
+
+Accept the current `colorful.gif` implementation as the **first software-side Phase 3 asset milestone only**. Do **not** treat it as the full colorful gate closure.
+
+## What passed
+
+1. **Canonical source rule holds.**
+   - `pico_build\tools\generate-gif-asset.ps1` prefers `external\TASBot-eye-animations\gifs\` and falls back to root `gifs\`.
+   - For this slice it selected `external\TASBot-eye-animations\gifs\others\colorful.gif`.
+   - The legacy fallback `gifs\others\colorful.gif` hashes identically, so the current choice is reproducible and non-ambiguous.
+
+2. **Generated asset reproducibility holds.**
+   - Two fresh generator runs produced identical SHA-256 values for `colorful_asset.generated.h` and `colorful_asset.metadata.txt`.
+   - Those hashes also match the current generated files in `pico_build\assets\generated\`.
+
+3. **Frame-count and timing claims are honest at software level.**
+   - Source GIF inspection confirmed `28x8`, `18` frames, and `100 ms` per frame (`1800 ms` total).
+   - The generated metadata records the same frame count and delay table.
+
+4. **Pico integration is real.**
+   - Fresh `collect-proof.ps1` build succeeded in `pico_build\build\review-colorful-proof`.
+   - Firmware links the colorful asset into the ELF and exports `g_tasbot_colorful_animation`, `g_tasbot_colorful_frame_delays_ms`, and `g_tasbot_colorful_pixels`.
+   - The runtime is on the WS2812B PIO path, not the old stub path.
+
+5. **Evidence is honest about remaining hardware proof.**
+   - The docs still make real hardware playback the actual F3 exit.
+   - No reviewed file falsely claims that 10+ cycle timing/checksum/video proof already exists.
+
+## Open gate
+
+Hardware proof is still open. Current source logs per-frame checksum and delay, but the colorful gate still requires captured on-device evidence before anyone can claim full acceptance.
+
+## Reviewer note
+
+`pico_build\CMakeLists.txt` currently regenerates the asset through a custom target and I observed the generation step twice in one clean build. That is not a blocker for this software milestone, but tighten it before full gate closure so the dependency edge is cleaner and the proof story stays boring.
+
+## Next measurable validation step
+
+Flash the built UF2 to the Plasma 2350 setup and capture:
+
+1. serial output covering **10+ full colorful cycles**
+2. measured cycle timing against the expected **1800 ms**
+3. short video/photo evidence showing stable colors and no frame corruption
+
+That is the next boss fight.
+
+
+---
+
