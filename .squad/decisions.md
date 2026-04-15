@@ -704,3 +704,44 @@ If PIO approach hits unexpected blocker:
 3. All checksums from 10+ consecutive cycles match within serial log
 
 Rejection or re-request for revision will be documented in project history with root cause.
+---
+
+## Dr. Light: Revise WS2812B-over-PIO Sign-Off (Merged 2026-04-16)
+
+# Dr. Light: Revise WS2812B-over-PIO Sign-Off
+
+**Date:** 2026-04-16  
+**Requested by:** Fortinbra
+
+## Summary
+
+The rejected WS2812B-over-PIO slice did not need a new architecture. It needed the board contract made explicit in one place and the proof package made honest about path-sensitive artifacts. This revision keeps the approved runtime seam intact, upgrades `board.h` into the single source of truth for the hardware-facing contract, and aligns the proof script's default build directory with the published hash table.
+
+## Decision
+
+1. Keep the approved seam unchanged: `portable logical frame -> TASBot mapper -> 154 RGB888 transport buffer -> firmware WS2812B PIO sink`
+2. Require `pico_build\src\firmware\board.h` to declare the runtime-facing board contract explicitly: protocol, resolved GPIO pin, physical pixel count, and smoke cadence/frame-rate
+3. Guard the contract with compile-time checks so board constants cannot silently drift away from portable geometry or cadence math
+4. Make `pico_build\tools\collect-proof.ps1` default to the published proof path (`pico_build\build\ws2812-proof`) so the documented bare command reproduces the path-sensitive `.elf`, `.dis`, and `.elf.map` hashes
+5. Keep hardware-attached proof explicitly open until a real Plasma 2350 capture exists; software proof is sufficient for software-side sign-off only
+
+## Why
+
+- Reviewers should not have to reverse-engineer the real hardware contract from fallback macros spread across firmware code.
+- Path-sensitive hashes are not a problem by themselves; pretending they are path-independent is the problem. Aligning tool defaults with the published package removes that ambiguity.
+- The transport design was already sound. The correction is about making the contract and evidence reviewable without widening the slice.
+
+## Evidence
+
+- `pico_build\src\firmware\board.h` now declares `WS2812B`, GPIO15, 154 pixels, and 750 ms smoke cadence explicitly
+- `pico_build\src\firmware\main.c` emits a board-contract banner and consumes the board contract macros directly
+- `pico_build\tools\collect-proof.ps1` reproduced the same `ws2812-proof` artifact hashes from both the bare command and explicit `-BuildDir`
+- `pico_build\proof\foundation-proof.md` now documents the exact reproduced hashes and keeps hardware proof separate
+- Fresh root Visual Studio build still fails only on legacy host dependencies (`gif_lib.h`, `unistd.h`, `ws2811/ws2811.h`, `dirent.h`, `pthread.h`)
+
+## Follow-up
+
+1. Flash `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` to the Plasma 2350
+2. Capture USB-serial output with 10+ deterministic checksum cycles
+3. Capture visual proof of the four smoke phases on the real array
+

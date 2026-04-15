@@ -181,3 +181,37 @@ Dr. Light leads the Pico SDK migration architecture.
 - Phase 3 hardware playback unblocked only after different agent revises and passes follow-up gate review
 - Phase 2 portable seam (smoke-pattern validation) can proceed independently; does NOT require PIO hardware proof
 
+### 2026-04-16 (Session 15): WS2812B-over-PIO Sign-Off Revision
+
+**Requested by:** Fortinbra  
+**Objective:** Close the rejected software-side sign-off gaps for the WS2812B-over-PIO slice without overclaiming hardware proof.
+
+**Completed:**
+- Tightened `pico_build\src\firmware\board.h` into an explicit board contract: WS2812B protocol, resolved GPIO pin, 154-pixel physical count, and 750 ms smoke cadence with compile-time consistency checks
+- Updated `pico_build\src\firmware\main.c` and `hw_led_pio.c` to consume the board contract directly instead of relying on implicit transport constants
+- Aligned `pico_build\tools\collect-proof.ps1`, `pico_build\proof\foundation-proof.md`, and `pico_build\README.md` so the documented default command reproduces the published path-sensitive hashes from `pico_build\build\ws2812-proof`
+- Revalidated the proof lane: default and explicit `-BuildDir C:\ws\tasbot_eyes\pico_build\build\ws2812-proof` runs now match, and `pico_build\src\` stays free of legacy headers (`ws2811`, `pthread`, `gif_lib`, `unistd`, `dirent`, `netinet`)
+- Re-ran the root Visual Studio baseline build and confirmed the same old host-only failures remain (`gif_lib.h`, `unistd.h`, `ws2811/ws2811.h`, `dirent.h`, `pthread.h`)
+
+**Architecture Decisions Reinforced:**
+- The approved seam stays intact: portable code still stops at the 154-entry RGB888 transport buffer, and firmware owns only board contract plus WS2812B PIO transport
+- Board-facing runtime expectations belong in one source of truth (`pico_build\src\firmware\board.h`), with compile-time assertions guarding drift between contract macros and portable geometry
+- Proof scripts for path-sensitive embedded artifacts should default to the published review path instead of asking reviewers to guess a special build directory
+
+**User/Reviewer Preference Locked:**
+- Keep hardware-attached proof explicitly open unless this environment can actually capture it; do not let software artifact proof masquerade as physical validation
+
+**Key Paths:**
+- `pico_build\src\firmware\board.h`
+- `pico_build\src\firmware\main.c`
+- `pico_build\src\firmware\hw_led_pio.c`
+- `pico_build\tools\collect-proof.ps1`
+- `pico_build\proof\foundation-proof.md`
+- `pico_build\README.md`
+- `docs\migration\features\f2-core-runtime.md`
+
+**Learnings:**
+- For hardware slices under review, a fallback chain is not enough; reviewers want the resolved protocol, pin, pixel count, and cadence expressed as the contract itself.
+- `.elf`, `.dis`, and `.elf.map` hashes are build-path-sensitive here, so the honest fix is to make the default proof path the published one and document that plainly.
+- Hardware proof remains a separate gate even when the firmware now embeds a clean board-contract banner and deterministic smoke cadence.
+

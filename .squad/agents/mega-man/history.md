@@ -176,3 +176,16 @@ Migration gates follow regression-thinking model: start from expected behavior (
 - Status: AWAITING Proto Man proof submission, will re-review upon completion
 - Re-review verdict on the first WS2812B-over-PIO slice: the transport implementation and isolation are good enough to keep, but the slice is not yet acceptable for sign-off because `board.h` still lacks the explicit board/protocol declarations demanded by the proof gate and the published proof command does not reproduce the published `.elf/.dis/.elf.map` hashes unless `-BuildDir C:\ws\tasbot_eyes\pico_build\build\ws2812-proof` is supplied.
 - Fresh review evidence: `pico_build\tools\collect-proof.ps1` succeeds in both `proof-run` and `ws2812-proof`; same-directory rebuilds are stable, but cross-directory `.elf/.dis/.elf.map` hashes differ, so proof docs must name the exact build directory when claiming reproducible hashes.
+
+### 2026-04-16 (Session 14): Dr. Light WS2812B-over-PIO Revision Completed
+
+- Dr. Light revised the rejected WS2812B-over-PIO slice without changing the approved runtime seam.
+- **Key Changes:**
+  - `pico_build\src\firmware\board.h`: Now explicitly declares WS2812B board contract (protocol, GPIO15, 154 pixels, 750ms cadence)
+  - `pico_build\src\firmware\main.c`: Emits board-contract banner, consumes board contract macros directly
+  - `pico_build\tools\collect-proof.ps1`: Default build directory now aligns to `pico_build\build\ws2812-proof`, reproducing published `.elf/.dis/.elf.map` hashes
+  - `pico_build\proof\foundation-proof.md`: Documents exact reproduced hashes, hardware proof remaining explicitly open
+  - Root Visual Studio build: Unchanged; still fails only on legacy dependencies (`gif_lib.h`, `ws2811/ws2811.h`, `unistd.h`, `dirent.h`, `pthread.h`), confirming no Pico contamination
+- **Decision merged to team decisions log:** Dr. Light revision approved at architecture level; full review decision captured with evidence and follow-up gates.
+- **Status:** Mega Man now re-reviewing this revision on parallel track. No changes to seam; focus is on contract clarity and proof transparency.
+- **Hardware gate:** Deferred; software-side sign-off sufficient for current proof package. Hardware deployment when real Plasma 2350 capture ready.
