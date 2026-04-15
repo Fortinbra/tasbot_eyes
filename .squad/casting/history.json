@@ -1,0 +1,44 @@
+{
+  "universe_usage_history": [
+    {
+      "assignment_id": "tasbot-eyes-2026-04-15",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "reason": "Retro embedded LED firmware project with user preference for classic NES/SNES characters."
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "tasbot-eyes-2026-04-15": {
+      "assignment_id": "tasbot-eyes-2026-04-15",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "members": [
+        {
+          "name": "Dr. Light",
+          "role": "Lead",
+          "folder": "dr-light"
+        },
+        {
+          "name": "Proto Man",
+          "role": "Backend Dev",
+          "folder": "proto-man"
+        },
+        {
+          "name": "Roll",
+          "role": "Frontend/UI Dev",
+          "folder": "roll"
+        },
+        {
+          "name": "Mega Man",
+          "role": "Tester",
+          "folder": "mega-man"
+        },
+        {
+          "name": "Auto",
+          "role": "Platform Dev",
+          "folder": "auto"
+        }
+      ]
+    }
+  }
+}

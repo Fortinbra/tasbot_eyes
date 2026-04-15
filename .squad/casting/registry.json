@@ -1,0 +1,41 @@
+{
+  "assignment_id": "tasbot-eyes-2026-04-15",
+  "universe": "Mega Man",
+  "agents": {
+    "dr-light": {
+      "persistent_name": "Dr. Light",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "proto-man": {
+      "persistent_name": "Proto Man",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "roll": {
+      "persistent_name": "Roll",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "mega-man": {
+      "persistent_name": "Mega Man",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "auto": {
+      "persistent_name": "Auto",
+      "universe": "Mega Man",
+      "created_at": "2026-04-15T00:49:30.516Z",
+      "legacy_named": false,
+      "status": "active"
+    }
+  }
+}
