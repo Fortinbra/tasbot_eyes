@@ -72,3 +72,40 @@ The existing `build\` directory is useful only as a baseline signal: it proves t
 
 **Decisions Captured:**
 - Decision `.squad/decisions/inbox/auto-isolated-pico-project.md` documents subdirectory rationale, asset preprocessing, feature doc pattern, and open questions for team consensus
+
+### 2026-04-15 (Session 6): Docs Consolidation and Asset Source Separation
+
+**Repository Layout Decisions:**
+- Migration planning docs now live under `docs\migration\`, with per-phase feature docs in `docs\migration\features\`
+- `external\TASBot-eye-animations\` is the tracked submodule path for maintained GIF and Aseprite animation sources
+- Root `gifs\` is now reference-only and should stay untouched locally while being ignored by git
+- Future offline asset generation is expected to land in `pico_build\assets\generated\`
+
+**Why It Matters:**
+- This keeps planning, source inputs, and generated firmware assets in separate lanes, which makes later Pico SDK work less fragile
+- The comparison step between legacy GIFs and the submodule animation set is now explicit in the migration docs instead of implied tribal knowledge
+
+**Key Paths:**
+- `docs\README.md`
+- `docs\migration\README.md`
+- `docs\migration\feature-breakdown.md`
+- `docs\migration\features\f1-foundation.md` through `docs\migration\features\f4-validation.md`
+- `external\TASBot-eye-animations\`
+
+### 2026-04-15 (Session 7): Decision Merge & Scribe Consolidation
+
+**Completed:**
+- Documented docs reorganization decision (auto-docs-assets-layout.md)
+- Documented isolated Pico project pattern (auto-isolated-pico-project.md)
+- Decisions staged in .squad/decisions/inbox/ for team merge
+- Dr. Light approved docs structure and submodule strategy
+
+**Decisions Frozen:**
+- Documentation reorganized: ✅ COMPLETE
+- Submodule configured: ✅ COMPLETE
+- Asset layout strategy: ✅ DOCUMENTED IN DECISIONS
+
+**Orchestration Logged:**
+- Timestamp: 2026-04-15T02:26:09Z
+- Session log: .squad/log/2026-04-15T02-26-09Z-docs-reorg.md
+- Inbox merge: Pending Scribe processing

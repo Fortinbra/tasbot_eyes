@@ -1,0 +1,3 @@
+[submodule "external/TASBot-eye-animations"]
+	path = external/TASBot-eye-animations
+	url = https://github.com/Inverted/TASBot-eye-animations

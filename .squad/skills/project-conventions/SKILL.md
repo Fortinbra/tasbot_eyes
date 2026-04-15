@@ -3,54 +3,49 @@ name: "project-conventions"
 description: "Core conventions and patterns for this codebase"
 domain: "project-conventions"
 confidence: "medium"
-source: "template"
+source: "repo-observed"
 ---
 
 ## Context
 
-> **This is a starter template.** Replace the placeholder patterns below with your actual project conventions. Skills train agents on codebase-specific practices — accurate documentation here improves agent output quality.
+Conventions that matter for the ongoing Pico migration and repository hygiene work.
 
 ## Patterns
 
-### [Pattern Name]
+### Documentation Layout
 
-Describe a key convention or practice used in this codebase. Be specific about what to do and why.
+- Keep migration planning docs under `docs\migration\`.
+- Put one phase doc per file under `docs\migration\features\`.
+- Root `README.md` can point at docs, but migration planning markdown should not accumulate at repo root.
 
-### Error Handling
+### Platform Separation
 
-<!-- Example: How does your project handle errors? -->
-<!-- - Use try/catch with specific error types? -->
-<!-- - Log to a specific service? -->
-<!-- - Return error objects vs throwing? -->
+- Treat root `*.c` and `*.h` files as immutable legacy references during migration planning.
+- Keep Pico-specific build glue and future firmware work isolated in `pico_build\`.
+- Do not mix platform setup decisions into the original host application files.
 
-### Testing
+### Asset Source Ownership
 
-<!-- Example: What test framework? Where do tests live? How to run them? -->
-<!-- - Test framework: Jest/Vitest/node:test/etc. -->
-<!-- - Test location: test/, __tests__/, *.test.ts, etc. -->
-<!-- - Run command: npm test, etc. -->
+- Root `gifs\` is legacy reference material and should remain untouched locally.
+- The tracked comparison source for animations lives in `external\TASBot-eye-animations\`.
+- Generated firmware-ready assets belong under `pico_build\assets\generated\`, not beside the legacy GIF dump.
 
-### Code Style
+### Build Story
 
-<!-- Example: Linting, formatting, naming conventions -->
-<!-- - Linter: ESLint config? -->
-<!-- - Formatter: Prettier? -->
-<!-- - Naming: camelCase, snake_case, etc.? -->
-
-### File Structure
-
-<!-- Example: How is the project organized? -->
-<!-- - src/ — Source code -->
-<!-- - test/ — Tests -->
-<!-- - docs/ — Documentation -->
+- Prefer the standard Pico SDK layout and tooling when the firmware tree is created.
+- Keep build outputs out of source directories; `pico_build\build\` is the planned transient output path.
 
 ## Examples
 
 ```
-// Add code examples that demonstrate your conventions
+docs\migration\README.md
+docs\migration\features\f3-assets-playback.md
+external\TASBot-eye-animations\
+pico_build\assets\generated\
 ```
 
 ## Anti-Patterns
 
-<!-- List things to avoid in this codebase -->
-- **[Anti-pattern]** — Explanation of what not to do and why.
+- **Root planning doc sprawl** — Do not keep adding migration planning markdown files at the repo root.
+- **Tracking both asset trees as maintained sources** — The root `gifs\` tree is for comparison only; use the submodule for tracked upstream animation sources.
+- **Leaking platform work into legacy files** — Keep Pico build and firmware glue isolated from original application files.

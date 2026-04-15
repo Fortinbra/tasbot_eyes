@@ -196,3 +196,69 @@ tasbot_eyes/
 - Isolation (subdirectory) + read-only originals = reversibility and clarity
 - Asset preprocessing is foundational; belongs in Phase 0, not Phase 3
 - Early validation gate (colorful.gif) enables faster iteration
+
+### Session 6 (2026-04-15)
+
+**Completed:**
+- Reviewed Auto's documentation reorganization and submodule setup
+- Approved docs structure covering all five phases (Phase 0–4)
+- Analyzed architectural fit of external submodule for asset sources
+- Recorded decision in `.squad/decisions/inbox/dr-light-docs-and-submodule-architecture.md`
+
+**Review Findings:**
+
+**Docs Structure (✅ APPROVED):**
+- All five phases clearly documented (Phase 0: structure, 1: hardware, 2: threading, 3: assets, 4: cleanup)
+- Acceptance criteria explicit for each phase
+- Validation checkpoints prevent false progress
+- Sequencing is clear: Phase 0 → Phase 1 → Phase 2 → [Phase 3 & 4 parallel]
+- Estimated effort realistic (4–6 weeks total)
+
+**Submodule Decision (✅ APPROVED WITH CONDITIONS):**
+- Read-only external source fits architecture (no violation of immutable root sources)
+- Asset pipeline will support both local gifs/ and external submodule sources
+- Graceful degradation required: pipeline must continue if submodule unavailable
+- Asset selection algorithm must be documented in Phase 3-2 (which source wins for duplicates?)
+- Risk is low; pattern is standard Git practice
+
+**Key Architectural Patterns Validated:**
+1. Phase 0 (structure) is non-negotiable predecessor — must establish isolation before Phase 1 code work
+2. Offline asset preprocessing is foundation — cannot be deferred; validates firmware at boot time
+3. Submodule pattern works for "canonical future source" if pipeline handles "current migration reference" gracefully
+4. Validation checkpoints + explicit sequencing prevent false progress and integration disasters
+
+**File Paths Confirmed:**
+- Docs root: `docs/`
+- Phase-specific features: `docs/migration/features/f1-*.md` through `f4-*.md`
+- Navigation: `docs/README.md` → `docs/migration/README.md` → phase docs
+- Asset sources: `gifs/` (local legacy, untracked), `external/TASBot-eye-animations/` (submodule)
+- Pico build output: `pico_sdk/build/` (generated assets + firmware artifacts)
+
+**Next Steps:**
+1. Fortinbra: Confirm Plasma 2350 W board + `pico_sdk/` naming acceptable
+2. Phase 0 kickoff can begin once board/naming confirmed
+3. Phase 3 implementer: Define asset selection algorithm + graceful degradation tests
+
+### Session 7 (2026-04-15): Decision Documentation & Architecture Finalization
+
+**Completed:**
+- Reviewed and approved Auto's docs reorganization decision
+- Reviewed and approved submodule architecture with conditions
+- Analyzed Phase 0 implementation impact (no code changes, structure only)
+- Documented constraints in .squad/decisions/inbox/ for team merge
+
+**Decisions Approved:**
+- **docs-and-submodule-architecture.md** (Dr. Light): APPROVED with Phase 3 follow-up conditions
+- **project-structure-constraints.md** (already approved Session 5): Locked into phase sequence
+
+**Conditions for Phase 3 Implementation:**
+1. Asset pipeline must handle missing submodule gracefully (no hard dependency)
+2. Define asset selection algorithm (which source wins for duplicates)
+3. Document .gitignore clarity (legacy vs. external vs. generated)
+
+**Risk Revalidation:**
+- Phase 0 complexity: LOW (structure + CMake setup only)
+- Asset preprocessing complexity: LOW (handled in F0-2)
+- Submodule optional: CONFIRMED (graceful fallback path exists)
+
+**Status:** READY FOR PHASE 0 KICKOFF (pending Fortinbra board/naming confirmation)

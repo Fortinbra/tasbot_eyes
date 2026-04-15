@@ -183,6 +183,68 @@
 
 ---
 
+### 9. Documentation Reorganization & Asset Source Layout
+**Date:** 2026-04-15 (Session 6)  
+**Owner:** Auto  
+**Status:** APPROVED  
+**Risk:** Low
+
+**Summary:** Migration planning docs consolidated under `docs/migration/`, maintained animation sources tracked via Git submodule in `external/TASBot-eye-animations/`, and legacy `gifs/` folder marked as ignored reference material.
+
+**Architecture:**
+```
+docs/
+├── README.md
+└── migration/
+    ├── README.md
+    ├── feature-breakdown.md
+    └── features/
+        ├── f0-structure.md         (Phase 0: Pico SDK setup)
+        ├── f1-foundation.md        (Phase 1: Hardware LED interface)
+        ├── f2-core-runtime.md      (Phase 2: Threading/event loop)
+        ├── f3-assets-playback.md   (Phase 3: Asset embedding)
+        └── f4-validation.md        (Phase 4: Cleanup & validation)
+```
+
+**Key Decisions:**
+- All phases (0–4) documented with acceptance criteria and validation gates
+- Submodule path: `external/TASBot-eye-animations/` (read-only source)
+- Legacy path: `gifs/` (untracked, local reference only)
+- Generated assets: `pico_build/assets/generated/` (git-ignored)
+
+**Sequencing Impact:** None. Documentation structure supports existing Phase 0–4 architecture without changes.
+
+**Next Steps:** Fortinbra approval on submodule + naming; Phase 3 implementer to document asset selection strategy.
+
+---
+
+### 10. Submodule Architecture & Asset Pipeline Strategy
+**Date:** 2026-04-15 (Session 6)  
+**Owner:** Dr. Light (reviewer), Auto (implementer)  
+**Status:** APPROVED WITH CONDITIONS  
+**Risk:** Low
+
+**Summary:** Dr. Light reviewed and approved submodule strategy for `external/TASBot-eye-animations/` as read-only external source. Asset pipeline will support graceful degradation if submodule unavailable.
+
+**Approved Conditions (Phase 3 responsibility):**
+1. Asset pipeline must continue building if `external/TASBot-eye-animations/` not initialized
+2. Asset selection algorithm must be documented (which source wins for duplicate animations?)
+3. `.gitignore` rules must clearly separate legacy (gifs/), external (submodule), and generated (pico_build/assets/)
+
+**Architecture Fit:** 
+- Submodule is optional, not required for local builds
+- Supports eventual migration to external repo as canonical source
+- Phase 3 asset preprocessor will compare both sources and select intelligently
+
+**Risk Mitigations:**
+- No hard build-time dependency on submodule
+- Graceful fallback to local `gifs/` if submodule unavailable
+- Pattern is standard Git practice (read-only external)
+
+**References:** `external/TASBot-eye-animations` → github.com/Inverted/TASBot-eye-animations
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
