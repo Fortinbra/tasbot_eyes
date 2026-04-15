@@ -94,6 +94,60 @@
 
 ---
 
+### 5. Pico SDK Migration Feature Breakdown
+**Date:** 2026-04-15  
+**Owner:** Dr. Light  
+**Status:** APPROVED (for team review and implementation)
+
+**Summary:** Operationalized the Four-Phase Pico SDK Migration Strategy into 14 concrete executable features (F1-1 through F4-4) with explicit acceptance criteria, sequential/parallel dependencies, testable exit criteria, and risk assessment.
+
+**Key Components:**
+- **Phase 1 (Hardware Abstraction):** 3 features; high-risk LED driver implementation
+- **Phase 2 (Threading Model):** 4 features; event loop refactor; high-risk timing changes
+- **Phase 3 (Assets):** 4 features; asset embedding pipeline; medium-risk ROM budget
+- **Phase 4 (Cleanup):** 3 features; low-risk optional features; final validation
+
+**Critical Path:** F1-1 → F1-2 → F1-3 → F2-2 → F2-3 → F2-4. Phases 3 & 4 can parallelize after F2-3.
+
+**Checkpoint Gates:** 6 mandatory validation gates ensure build progress is real and prevent integration disasters.
+
+**Artifact:** `FEATURE_BREAKDOWN.md` (repository root) with full specifications, acceptance criteria, dependencies, gate descriptions, risk mitigation, and timeline.
+
+**Effort:** 3–4 weeks at typical team velocity.
+
+**Next Steps:** 
+1. Fortinbra: Review FEATURE_BREAKDOWN.md; sign-off on scope and timeline
+2. Coder: Implement F1-1 (Define Hardware LED Interface)
+3. Dr. Light: Architecture review of F1-1 output; gate F1-2 start
+
+---
+
+### 6. Asset Pipeline for Pico Migration
+**Date:** 2026-04-15  
+**Owner:** Roll  
+**Status:** Pending Team Consensus
+
+**Summary:** Analyzed three asset delivery options for Phase 3 (Assets) within Pico's ~256 KB usable flash budget:
+
+**Options Considered:**
+- **Option A: Offline GIF→Frame Conversion (Recommended)** — Convert GIFs to raw frame buffers at build time. Fast startup, no runtime decoding, deterministic memory. Flash cost: 10–50 KB per animation. Effort: Medium.
+- **Option B: Embed Small GIFs in Flash** — Ship GIFs as raw bytes; decode on first boot. Requires GIFLIB porting (complex). Flash cost: 30 KB per GIF + 10 KB GIFLIB. Effort: High.
+- **Option C: SD Card with On-Demand Decoding** — Load from SD; decode frame-by-frame. Unlimited assets but requires SD driver, timing overhead. Effort: High.
+
+**Recommendation:** Start with Option A (offline conversion) in Phase 3; plan Option C fallback if flash budget becomes tight.
+
+**Rationale:** Aligns with Pico SDK best practices, avoids porting large libraries, deterministic performance, asset format can evolve independently.
+
+**Blocking Issue:** Plasma 2350 W LED protocol specification (pins, protocol, timing) needed before Phase 3 begins.
+
+**Action Items:**
+- [ ] Team consensus on Option A vs. alternatives
+- [ ] If Option A: design frame buffer binary format
+- [ ] Create GIF→buffer conversion tool
+- [ ] Verify Plasma 2350 W I/O contract
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
