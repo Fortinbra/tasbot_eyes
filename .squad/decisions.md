@@ -831,6 +831,40 @@ Treat this pass as honest hardware progress:
 
 ---
 
+## Proto Man: Blue Output Trace Follow-Up (Inbox merge 2026-04-18)
+
+# Proto Man: Blue Output Trace Follow-Up
+
+**Date:** 2026-04-18  
+**Status:** RESOLVED BY HARDWARE SUCCESS
+
+### Summary
+
+I traced the live Pico path from generated asset through mapping and transport. The multicolor data is present in `pico_build\assets\generated\colorful_asset.generated.h`, preserved by `pico_build\src\portable\embedded_animation.c`, mapped into diverse 154-pixel transport colors by `pico_build\src\portable\tasbot_layout.c`, and the running firmware reports stable varying frame checksums in `pico_build\proof\hardware-serial-capture.log`.
+
+### Decision
+
+Treat **stale UF2 selection** as the highest-probability remaining software root cause for a "still all blue" report.
+
+- `pico_build\build\ws2812-proof\tasbot_eyes_pico.elf` contains representative multicolor frame constants (`0x00FFAA00`, `0x00AAFF00`, `0x0000FFAA`, `0x0000AAFF`)
+- `pico_build\build\review-colorful-proof\tasbot_eyes_pico.elf` does **not**
+- Therefore, flashing the older `review-colorful-proof` artifact can preserve the pre-fix symptom even though source and generated header are now correct
+
+### Fastest Decisive Experiments
+
+1. Flash `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` specifically, not `review-colorful-proof`.
+2. If the display is still blue after that exact UF2, next suspect is final strip color order at `pico_build\src\firmware\hw_led_pio.c`, not the asset or mapper path.
+
+### Consequence
+
+Do not treat `review-colorful-proof` as source-matching for current colorful playback validation. Use `ws2812-proof` as the canonical rebuilt UF2 for the next physical reflash.
+
+### Outcome (2026-04-18)
+
+**DECISION VALIDATED BY HARDWARE SUCCESS:** The "rainbows" confirmation proves multicolor output is now rendering correctly across the array. This trace-back analysis identified the asset-path integrity and correct UF2 selection as the decisive factors. Hardware milestone achieved.
+
+---
+
 ## Proto Man: BOOTSEL Window Flash Decision (Inbox merge 2026-04-18)
 
 # Proto Man — BOOTSEL window flash decision
