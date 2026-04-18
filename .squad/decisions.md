@@ -488,6 +488,65 @@ tasbot_eyes/
 
 **Evidence:**
 - `pico_build\tools\collect-proof.ps1` reproduces Pico SDK configure and firmware artifacts
+
+---
+
+### 19. Proto Man: Debug Blue-Only Colorful.GIF Output
+
+**Date:** 2026-04-18  
+**Owner:** Proto Man  
+**Status:** RESOLVED  
+**Risk:** Low (root cause isolated; fix applied)
+
+**Summary:** The "all LEDs blue" symptom on real hardware was traced to an asset-packing bug in `pico_build\tools\generate-gif-asset.ps1`, not to the Pico WS2812 PIO transport.
+
+**Root Cause:** The PowerShell script was shifting `System.Drawing.Color` channel bytes without widening them first, causing integer overflow that zeroed the red and green lanes during `0xRRGGBB` assembly.
+
+**Decision:**
+1. Keep the existing Pico-side runtime seam and WS2812 PIO driver unchanged
+2. Fix the asset converter by casting each color channel to `[uint32]` before `-shl`
+3. Regenerate `pico_build\assets\generated\colorful_asset.generated.h` and rebuild UF2 artifacts
+
+**Evidence:**
+- Generated header before fix contained blue-only values like `0x0000FF`, `0x0000AA` for frames that should contain white, red, orange, green, cyan
+- Source GIF verified as multicolor via independent image inspection
+- Failure mode matches observed symptom: transport alive, but payload already wrong at generation time
+
+**Expected Observable After Flash:**
+- LED array displays recognizable multicolor sweep (white → red → orange → green → cyan) instead of uniform blue
+- Frame checksums vary per frame (confirms color data variation)
+- Animation pacing reasonable and recognizable as source `colorful.gif`
+
+**Next Validation:** Flash rebuilt UF2 to real Pico hardware and capture serial output + visual proof of color fidelity.
+
+---
+
+### 20. Mega Man: Triage — All LEDs Blue Symptom
+
+**Date:** 2026-04-16  
+**Owner:** Mega Man  
+**Status:** CLOSED (root cause confirmed by Proto Man)  
+**Risk:** Mitigated
+
+**Summary:** Systemic triage of the "all LEDs blue" failure mode, ranking root cause candidates and prescribing validation checkpoints at four layers: asset proof, link/symbol proof, hardware boot readiness, and playback/color fidelity.
+
+**Root Cause Candidates (Ranked by Probability):**
+1. **Color Channel Inversion/Bit Field Corruption [HIGHEST]** — Asset generator or driver packing logic inverts/permutes channels (CONFIRMED as Proto Man's finding)
+2. **Asset Not Generated or Loaded [MEDIUM]** — CMake asset generation failed silently
+3. **Frame Buffer Corruption or Layout Mapping [MEDIUM]** — Blit path misaligns logical/physical pixel layout
+4. **WS2812B Timing or Reset Failures [LOW]** — If any color shows, timing is likely intact
+
+**Validation Checklist (Multi-Layer):**
+- **Layer 1 (Asset Proof):** Generated header size ≥ 500B, first frame NOT all 0x0000FF
+- **Layer 2 (Link & Symbol):** Firmware ELF contains colorful symbols; UF2 ≥ 50 KB
+- **Layer 3 (Hardware Boot):** Serial log shows "tasbot_eyes pico_build booting" + asset metadata within 2 seconds
+- **Layer 4 (Playback & Color Fidelity):** Frame 0 checksum ≠ Frame 1 checksum; visual shows ≥2 distinct colors in first 5 frames
+
+**Minimum Observable Evidence for Fix Confirmation:**
+- Serial: Frame checksums vary; pixel counts vary per frame
+- Visual: ≥2 distinct colors; animation recognizable as source GIF
+
+**Disposition:** Multi-layer validation approach provides early-stage confidence before hardware flash. Proto Man's debug output and asset regeneration satisfy Layer 1 requirements.
 - `pico_build\proof\foundation-proof.md` honestly scopes software proof and leaves hardware gate open
 - Fresh root build still fails on missing legacy dependencies (isolation confirmed)
 - Mega Man reproduced proof script in both default and explicit build directories; artifact hashes match

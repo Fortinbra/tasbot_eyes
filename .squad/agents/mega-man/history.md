@@ -319,3 +319,90 @@ Mega Man's 14-point acceptance checklist now applies to Auto's deliverable:
 
 Mega Man to execute acceptance gate review on Auto's completed colorful asset pipeline. Hardware validation gates (7–14) require physical Plasma 2350 W with USB-serial capture and visual proof.
 
+
+## Session 8: F3 Hardware Symptom Triage — All LEDs Blue (2026-04-16)
+
+**Task:** Triage symptom "all LEDs blue, colorful.gif does not render with color variety" into a tight validation checklist and failure-class hierarchy.
+
+**Investigation:**
+
+Reviewed firmware data path:
+- pico_build\src\firmware\colorful_asset.c (asset binding struct)
+- pico_build\src\firmware\main.c (playback loop: frame load → blit → present)
+- pico_build\src\firmware\hw_led_pio.c:21–27 (pack function: RGB888 → WS2812B 0xGRB00)
+- pico_build\tools\generate-gif-asset.ps1:227 (asset encoder: GIF → 0xRRGGBB)
+
+**Root Cause Candidates (Ranked):**
+
+1. **Color Channel Inversion / Bit Field Corruption [HIGHEST RISK]**
+   - Asset encodes as  x00RRGGBB, driver packs as (G<<24)|(R<<16)|(B<<8)
+   - If bit extraction is inverted, only blue channel renders visible
+   - All frames render identically blue = first frame checksum = second frame checksum
+   - Fix site: hw_led_pack_ws2812() or asset encoder
+
+2. **Asset Not Generated or Zero Frame Count [MEDIUM]**
+   - CMakeLists.txt custom command failed; main.c returns error at line 45–48
+
+3. **Frame Buffer Corruption / Layout Mapping [MEDIUM]**
+   - 	asbot_layout_blit_frame() zeros R/G channels during 28×8→154 pixel transform
+
+4. **WS2812B Timing Drift [LOW]**
+   - Checksum variance (not uniformity) indicates corruption, not color inversion
+
+**Validation Checklist Produced:**
+
+Structured as 16-point gate covering asset proof → link proof → boot proof → playback proof.
+
+**Most Useful Proof Artifacts:**
+- Layer 4, check 12: Frame 0 checksum ≠ Frame 1 checksum (binary gate: all-blue or varied)
+- Layer 4, check 15: Visual observation of ≥2 distinct colors in first 5 frames (hardware proof)
+- Serial frame log ([asset] frame=X/Y delay=Zms checksum=0xXXXXXXXX) is the tightest observable evidence
+
+**Key Discovery:**
+
+The symptom "all LEDs blue" is a regression blocker specifically for **hardware asset acceptance**. It indicates either:
+- Color contract violation between asset generator and driver (fixable in software)
+- Asset pipeline failure (fixable in build/generation)
+- LED layout mapping bug (fixable in seam layer)
+
+This is testable in one flash cycle with serial log capture and photo evidence.
+
+**Pattern Reuse:**
+
+Hardware symptom triage follows a pattern:
+1. Rank failure classes by likelihood (most likely: contract violation; next: missing component; least: timing issue)
+2. Identify the minimal observable evidence that isolates the root cause (checksum constancy → color issue; checksum variance → corruption)
+3. Define the acceptance gate as the inverse: if evidence flips, symptom is fixed
+
+**Files Updated:**
+- .squad/decisions/inbox/mega-man-blue-symptom.md — Full triage with checklist and diagnostics
+
+**Team Alignment:**
+
+This symptom is the first hardware-attached gate for F3 colorful.gif. The triage separates software-provable from hardware-provable failure modes. Next step: Fortinbra runs the checklist on the next flash cycle and reports back with serial/visual evidence.
+
+### 2026-04-18 (Session Current): Blue-Only Symptom — Root Cause Confirmed
+
+**Status:** Root cause isolated by Proto Man; asset fix applied and merged to decisions.
+
+**Confirmation:**
+- Mega Man's multi-layer triage correctly identified candidate #1 (color channel inversion) as highest probability
+- Proto Man traced the actual bug to `pico_build\tools\generate-gif-asset.ps1:227`
+- Root cause: Missing `[uint32]` cast before left-shift, causing red/green channels to zero
+
+**Evidence Collected:**
+- Generated header before fix contained blue-only pixel values
+- Source GIF externally verified as multicolor
+- Failure mode: transport works, payload corrupted at generation time
+
+**Fix Validation:**
+- Asset converter fixed (channel cast added)
+- New header generated with correct RGB values
+- UF2 rebuilt and ready for hardware validation
+
+**Mega Man's Blue-Symptom Triage Decision:**
+- Gate remains open until next hardware flash
+- Validation checklist stands as written (Layers 1–4)
+- Checksum stability and visual color fidelity required for closure
+
+**Next Action:** Hardware flash with serial capture to prove frame checksum variation and visual colorful.gif playback.

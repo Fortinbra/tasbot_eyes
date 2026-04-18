@@ -23,6 +23,7 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - 2026-04-16: `pico_build\src\portable\` can safely start with TASBot geometry plus deterministic smoke-pattern code; `color.c/.h` is the next low-risk legacy copy when HSV fade or gamma correction is needed.
 - 2026-04-16: The clean Phase 2 firmware seam is `logical 28x8 frame -> TASBot layout mapper -> 154-pixel RGB888 transport buffer -> hw_led driver`, with the firmware loop owning all cadence.
 - 2026-04-16: `led.h`, `gif.h`, `filesystem.h`, and `network.h` are the hard compatibility blockers because they leak `ws2811`, GIFLIB, POSIX directory APIs, sockets, and pthreads across otherwise portable code.
+- 2026-04-18: The blue-only `colorful.gif` symptom traced to `pico_build\tools\generate-gif-asset.ps1`, not the Pico PIO transport; PowerShell channel bytes must be widened to `[uint32]` before `-shl` or red/green bits collapse and the generated header under `pico_build\assets\generated\` turns multicolor frames into mostly blue output.
 
 **Team Alignment (2026-04-15):**
 - Portable core identified: minimal API reshaping required
@@ -79,4 +80,29 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 3. Flash to Plasma 2350; capture serial log + smoke-phase video
 
 **Decision:** Proto Man locked out of revision. Next step: Different agent revises and resubmits for gate review.
+
+### 2026-04-18 (Session Current): Blue-Only Output Root Cause Isolated & Asset Fix Applied
+
+**Status:** RESOLVED (asset fix applied; flash validation pending)
+
+**Problem:** First real-board flash showed all LEDs blue instead of multicolor colorful.gif animation.
+
+**Root Cause:** `pico_build\tools\generate-gif-asset.ps1` was shifting color channel bytes without `[uint32]` cast, causing integer overflow that zeroed red and green lanes.
+
+**Fix Applied:**
+1. Cast each color channel to `[uint32]` before left-shift operators in generate-gif-asset.ps1
+2. Regenerated `pico_build\assets\generated\colorful_asset.generated.h` with correct multicolor frame data
+3. Rebuilt `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2`
+
+**Evidence:**
+- Generated header before fix: blue-only values (0x0000FF, 0x0000AA) for frames that should have white/red/orange/green/cyan
+- Source GIF verified multicolor via external image viewer
+- Failure mode matches observed symptom perfectly: WS2812 transport alive, but payload corrupted at generation
+
+**Expected Result on Next Flash:**
+- LED array displays recognizable multicolor sweep (white → red → orange → green → cyan)
+- Frame checksums vary (confirms color data variation)
+- Animation pacing reasonable and recognizable as source colorful.gif
+
+**Next Action:** Fortinbra to flash regenerated UF2 and validate colorful.gif playback with serial capture + visual proof.
 

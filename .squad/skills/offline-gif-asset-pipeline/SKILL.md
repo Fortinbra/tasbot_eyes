@@ -30,6 +30,12 @@ Use this when a Pico firmware migration must consume animation assets from flash
 - Keep the stable playback struct/API in checked-in source (`embedded_animation.*`) so firmware code can depend on a normal interface instead of including tool-specific logic everywhere.
 - Let a tiny wrapper translation unit (`colorful_asset.c`) bind the generated arrays into that contract.
 
+### Widen color channels before bit-packing in PowerShell
+
+- Treat `System.Drawing.Color` channel properties as small integer types, not already-safe 32-bit values.
+- Cast each channel to `[uint32]` before `-shl` when assembling `0xRRGGBB`, or PowerShell can truncate the shifted result and silently zero the red/green lanes.
+- If a supposedly colorful asset renders mostly blue, inspect the generated header first; a bad offline pack can mimic a hardware byte-order bug.
+
 ### Reuse the existing transport seam
 
 - Convert GIF frames into the logical frame dimensions the firmware already understands.
@@ -49,3 +55,4 @@ Use this when a Pico firmware migration must consume animation assets from flash
 - **Runtime GIF loading on MCU** — do not keep filesystem discovery in the Pico firmware path.
 - **Hidden source precedence** — do not silently pick whichever GIF appears first on disk.
 - **Generated API sprawl** — do not make every firmware file understand the generator’s raw output format directly.
+- **Shifting byte channels directly in PowerShell** — `($pixel.R -shl 16)` can collapse to zero and corrupt generated RGB data.
