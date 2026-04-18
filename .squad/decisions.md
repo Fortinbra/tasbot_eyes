@@ -793,6 +793,54 @@ The rejected WS2812B-over-PIO slice did not need a new architecture. It needed t
 ## Evidence
 
 - `pico_build\src\firmware\board.h` now declares `WS2812B`, GPIO15, 154 pixels, and 750 ms smoke cadence explicitly
+
+---
+
+## Proto Man: Hardware Proof Pass (Inbox merge 2026-04-18)
+
+# Proto Man hardware proof pass
+
+- **Date:** 2026-04-18
+- **Status:** Partial hardware gate closure; flash + runtime loop proven, boot-banner/video gate still open
+
+### What was proven
+
+1. Flashed `pico_build\build\review-colorful-proof\tasbot_eyes_pico.uf2` to the Plasma 2350 while it was mounted as `D:\` in BOOTSEL mode.
+2. The board left BOOTSEL, then enumerated a USB CDC serial interface as `COM10`.
+3. Serial capture proved the current firmware image is the embedded `colorful.gif` loop, not the older smoke-pattern image:
+   - 18 frames
+   - 100 ms per frame
+   - 15 full cycles captured in `pico_build\proof\hardware-serial-capture.log`
+   - per-frame checksums stayed stable across captured cycles
+4. Follow-up reflash from BOOTSEL reproduced `COM10` and another asset-loop capture in `pico_build\proof\hardware-boot-capture.log`.
+
+### What stayed blocked
+
+1. The one-shot boot/ready banners were not observed on the host serial captures.
+   - The board was clearly alive and streaming frame logs.
+   - In this Windows USB-CDC path, opening the COM port after enumeration did not replay the early boot text.
+2. No photo/video proof was possible from this environment, so visual playback and color fidelity still need human confirmation on the array.
+3. Timing proof is approximate only from host receive timestamps; firmware-side timestamps are still absent.
+
+### Reviewer-relevant takeaway
+
+Treat this pass as honest hardware progress:
+
+- **Closed now:** flash success, serial enumeration, colorful-loop execution, repeated checksum stability
+- **Still open:** ready-banner capture, visual proof, firmware-timestamped timing proof
+
+---
+
+## Proto Man: BOOTSEL Window Flash Decision (Inbox merge 2026-04-18)
+
+# Proto Man — BOOTSEL window flash decision
+
+- **Date:** 2026-04-18
+- **Context:** User reported the board was "in bootsel mode again, drive d:" and asked for the newest valid UF2, preferring the blue-output debug/fix build if available.
+- **Decision:** Flash `C:\ws\tasbot_eyes\pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` (SHA-256 `4561963937A6CDA5B836793B5428CE29D17A9589B7EA7ECE6C46069F59C692C8`) because it is the newest validated UF2 under `pico_build\build\` and is newer than the pre-fix `review-colorful-proof` image set.
+- **Why:** The latest `ws2812-proof` artifact was built on 2026-04-18 after the blue-output asset fix was identified and after fresh hardware-proof artifacts (`pico_build\proof\hardware-validation-run.txt`, `hardware-serial-capture.log`) were generated the same afternoon. That makes it the best post-fix candidate available in-repo during this BOOTSEL window.
+- **Operational note:** `D:\` was gone on first check because the board had already left BOOTSEL; `picotool reboot -f -u` brought it back as `D:\` labeled `RP2350`, the UF2 copy completed, the drive disappeared again, and `picotool info -a` then saw the RP2350 on USB serial instead of BOOTSEL.
+- **Immediate blocker:** Late-attached COM10 capture produced no lines, so there is no fresh boot-banner transcript from this flash; on this setup the boot/ready text appears to be one-shot and easy to miss unless capture is armed before reset.
 - `pico_build\src\firmware\main.c` emits a board-contract banner and consumes the board contract macros directly
 - `pico_build\tools\collect-proof.ps1` reproduced the same `ws2812-proof` artifact hashes from both the bare command and explicit `-BuildDir`
 - `pico_build\proof\foundation-proof.md` now documents the exact reproduced hashes and keeps hardware proof separate

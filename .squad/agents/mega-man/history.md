@@ -68,4 +68,6 @@ Migration success needs clear behavior checkpoints because the runtime platform 
 - **Non-negotiable gates:** Phase 0 serial output; Phase 1 hardware LED test; Phase 3 MVP playback; Phase 4 30-minute stability run.
 - **Regression risk profile:** Phases 1 & 2 highest risk (hardware driver + timing). Phase 3 medium (asset format can evolve). Phase 4 low (cleanup).
 
+**Hardware Milestone (2026-04-18):**
+- **RAINBOW SUCCESS CONFIRMED:** Plasma 2350 now displaying multicolor output. User visual confirmation: "We have rainbows!" Colorful animation loop actively playing on embedded ROM. Previous blue-only output resolved. Phase 3 MVP gate closure confirmed by real hardware observation.
 

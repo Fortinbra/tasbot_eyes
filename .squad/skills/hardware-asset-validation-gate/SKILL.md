@@ -121,15 +121,16 @@ if ( -eq ) {
 **Approach:**
 
 1. **Serial Instrumentation in Firmware:**
-   - Playback loop logs per-frame information:
-     `c
-     [playback] anim=colorful frame=0 delay=100ms checksum=0xABCD1234 ts=0ms
+    - Playback loop logs per-frame information:
+      `c
+      [playback] anim=colorful frame=0 delay=100ms checksum=0xABCD1234 ts=0ms
      [playback] anim=colorful frame=1 delay=100ms checksum=0xDEF56789 ts=100ms
      ...
-     [playback] cycle_count=1 total_ms=6000 expected_ms=6000 drift_ms=0 PASS
-     `
-   - Checksum = CRC32 or simple sum of all pixel values in the frame.
-   - Timestamp = milliseconds since boot.
+      [playback] cycle_count=1 total_ms=6000 expected_ms=6000 drift_ms=0 PASS
+      `
+    - Checksum = CRC32 or simple sum of all pixel values in the frame.
+    - Timestamp = milliseconds since boot.
+    - **USB-CDC caveat:** host-side COM capture may begin only after the port is opened. If the firmware emits one-shot boot banners before the host attaches, flash first, attach immediately when the COM port enumerates, and treat missing early banners as a capture limitation unless you actually observed them.
 
 2. **10+ Cycle Checksum Stability:**
    - Capture serial output for 5–10 minutes (10+ full animation loops).
