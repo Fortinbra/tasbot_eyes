@@ -2,6 +2,80 @@
 
 ## Active Decisions
 
+### 1. Dr. Light: 154→256 Pixel Contract Audit — Full 8×32 Panel
+**Date:** 2026-04-19  
+**Owner:** Dr. Light  
+**Status:** ACTIVE — blocks hardware validation
+
+The user reports "about 2/3 are lighting up, and the image is still mangled." This is correct: 154 / 256 = 60.2% ≈ "about 2/3." The entire firmware pipeline — constants, layout mapper, generated assets, converter, smoke patterns, and documentation — is built around the legacy TASBot face-mask geometry (28 logical columns, 154 occupied pixels out of 224 grid positions). The physical hardware is a full 8×32 = 256 rectangular serpentine panel with no holes.
+
+**Root Cause:** Every constant, table, and validation check in the Pico firmware reflects the old TASBot face shape, not the physical panel. See full breakdown:
+- `runtime_types.h`: `TASBOT_LOGICAL_WIDTH 28u` should be `32u`, `TASBOT_PHYSICAL_LED_COUNT 154u` should be `256u`
+- `board.h`: `TASBOT_EYES_LED_PIXEL_COUNT 154` should be `256`
+- `tasbot_layout.c`: `kTasbotIndex[8][28]` (sparse face mask, 154 entries) must become `kTasbotIndex[8][32]` (full rectangle, 256 entries)
+- `generate-gif-asset.ps1`: Hard rejects anything ≠ 28×8, must accept 32×8
+- Generated assets, smoke patterns, nose mapping: all hardcoded for 28-wide face
+
+**Why 2/3 Light Up and Image Is Mangled:**
+1. Firmware pushes exactly 154 GRB packets to WS2812B chain, then asserts reset. Pixels 154–255 receive no data and stay dark. 154/256 ≈ 60%.
+2. `kTasbotIndex` maps a non-rectangular face shape to physical indices 0–153. Even though remapped for column-serpentine, the face-shaped occupancy with gaps produces a garbled image on full-panel.
+
+**GIF Source Problem:** Upstream animations are 28×8 because they were designed for face-mask shape. Full 8×32 panel needs 32×8 content.
+
+**Two Paths:**
+- **A. Quick fix (padding):** Keep 28×8 source GIFs, center in 32-wide panel (2 blank columns each side), rewrite mapper for 256 full-rectangle. Gets all 256 LEDs driven and content centered, but 4 edge columns dark.
+- **B. Correct fix (new content):** Create 32×8 source art, update converter to accept 32×8, update all constants. Long-term right answer.
+
+**Recommendation:** Implement option A first as unblocking step (all 256 LEDs driven, recognizable), then pursue option B when content available.
+
+**Proto Man Tier 1 (Required for any 256 LEDs):**
+1. `runtime_types.h`: `TASBOT_LOGICAL_WIDTH` → 32, `TASBOT_PHYSICAL_LED_COUNT` → 256
+2. `board.h`: `TASBOT_EYES_LED_PIXEL_COUNT` → 256
+3. `tasbot_layout.c`: Rewrite `kTasbotIndex[8][32]` as full 256-entry column-serpentine. No -1 entries.
+
+**Tier 2 (Required for image display):**
+4. `embedded_animation.c`: Width check now expects 32. Update converter to emit 32-wide frames (padded from 28) or add centering path in loader.
+5. `generate-gif-asset.ps1`: Remove/relax 28×8 hard check.
+6. Regenerate `colorful_asset.generated.h` with updated converter.
+
+**Tier 3 (Validation tooling):**
+7. `smoke_patterns.c`: Shift right-eye patterns from column 20–27 to 24–31 for centering.
+8. `tasbot_nose_field_to_logical()`: Adjust nose constants for 32-wide grid.
+9. `collect-proof.ps1`: Update string patterns to "256 pixels" and "32x8 frame".
+
+**Gate Status:** Hardware validation gate remains **OPEN** until all 256 LEDs driven and displayed image visually recognizable on physical panel.
+
+---
+
+### 2. Proto Man: Pico Panel Contract Must Target Full 8×32 / 256 LEDs
+**Date:** 2026-04-18  
+**Owner:** Proto Man  
+**Status:** PROPOSED
+
+Fortinbra confirmed the real Pico-driven matrix is a full 8×32 panel with 256 LEDs, wired top-left first and snaked by column.
+
+**Decision:**
+- Change Pico runtime contract to 32 columns, 8 rows, 256 transport pixels
+- Map logical (x,y) to physical LED index with direct column-serpentine math
+- Keep current 28×8 generated assets by clearing 32×8 frame and copying smaller assets top-left until asset pipeline widened
+
+**Why:**
+- Old 154-pixel contract truncated loops and left ~2/3 of panel reachable
+- Legacy sparse occupancy table wrong for full rectangular matrix
+- Padding in firmware unblocks hardware validation without forcing asset-pipeline redesign
+
+**Evidence:**
+- Updated runtime now targets `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2`
+- Rebuilt UF2 SHA-256: `D55128FDE5396663238FB4978BC3AA6D82110D1DC5FB1FB768BD1D1C2827B108`
+- Mapper formula sanity-check: covers each physical index 0..255 exactly once
+
+**Impact:**
+- After reflash, panel stops truncating at 154-pixel boundary
+- Image order follows real harness: down column 0, up column 1, alternating across 32 columns
+- 28×8 art still renders, extra panel area black until wider assets generated
+
+---
+
 ### 1. Four-Phase Pico SDK Migration Strategy
 **Date:** 2026-04-15  
 **Owner:** Dr. Light  

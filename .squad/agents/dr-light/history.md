@@ -22,6 +22,7 @@ Dr. Light leads the Pico SDK migration architecture.
 - 📌 Team roster finalized on 2026-04-15.
 - 📌 **2026-04-15 (Session 2):** Four-phase migration strategy captured and merged to decisions.md. Team consensus on phased abstraction, conditional CMake, embedded ROM assets, and serial injection.
 - 📌 **2026-04-18 (Session 19):** Independent crosscheck of full color pipeline after "still all blue." No software bug found. Converter fix was valid but not sufficient. Recommended decisive 4-color smoke test. Hardware proof gate remains OPEN.
+- 📌 **2026-04-18 Session (latest-flash):** Critical discovery during hardware validation: physical Plasma 2350 is full 8×32 (256 LEDs) but firmware still targets legacy 154-pixel TASBot face-mask. This explains user report: "about 2/3 are lighting up" (154/256 ≈ 60%). Every layer affected: constants (TASBOT_LOGICAL_WIDTH, TASBOT_PHYSICAL_LED_COUNT), `kTasbotIndex` mapper, asset pipeline (28×8 GIFs), smoke patterns, nose mapping, proof tooling. **Tier 1 (constants + 256-entry mapper)** required to drive all LEDs. **Tier 2 (asset centering/padding)** required for recognizable image. **Tier 3 (smoke/proof tooling)** for validation. Decisions #1 (Dr. Light 256-audit) and #2 (Proto Man 256-contract) merged to active queue with full impact assessment. Latest ws2812-proof UF2 ready for BOOTSEL flash validation once contract updates complete.
 
 ## Learnings
 
@@ -30,6 +31,9 @@ Dr. Light leads the Pico SDK migration architecture.
 - The asset converter uint32 cast fix (Session 18) was a valid Layer 1 fix but was overclaimed as root-cause resolution. Layer 3 hardware proof was never performed. This violated the hardware-asset-validation-gate pattern.
 - The decisive experiment for channel-order validation is a blocking 4-color smoke test (RED→GREEN→BLUE→WHITE, 3 seconds each) observed on physical hardware before entering the animation loop.
 - Key paths for the full color pipeline: `generate-gif-asset.ps1` → `colorful_asset.generated.h` → `colorful_asset.c` → `embedded_animation.c` → `tasbot_layout.c` → `hw_led_pio.c` (pack function) → `ws2812.pio` (PIO state machine).
+- **2026-04-19: 154→256 pixel audit.** The entire Pico firmware stack (constants, mapper, converter, smoke patterns, proof tooling) still reflects the old TASBot 28×8 face-mask layout with 154 occupied pixels. The physical 8×32 panel has 256 pixels. This is why ~2/3 light up and the image is mangled. The column-serpentine mapper logic is correct but scoped too narrowly; all constants, the lookup table dimensions (28→32, 154→256), the converter's 28×8 hard check, and smoke patterns need updating. Recommended padding approach: keep 28×8 GIF sources centered in 32-wide frames until new 32×8 art exists.
+- Key files for the 256-pixel update: `runtime_types.h` (TASBOT_LOGICAL_WIDTH, TASBOT_PHYSICAL_LED_COUNT), `board.h` (TASBOT_EYES_LED_PIXEL_COUNT), `tasbot_layout.c` (kTasbotIndex table), `generate-gif-asset.ps1` (line 182 size check), `smoke_patterns.c` (face-mask coordinates), `collect-proof.ps1` (search strings).
+- Column-serpentine formula for full 8×32 panel: even column x → index = x*8+y; odd column x → index = x*8+(7-y). No -1 holes.
 - Migration success depends more on seam control than on superficial build progress.
 - The architecture should preserve the legacy host build, isolate Pico work, and make every phase exit criterion observable.
 - `colorful.gif` on real hardware is the earliest meaningful proof point; smooth playback and fuller feature parity come later.

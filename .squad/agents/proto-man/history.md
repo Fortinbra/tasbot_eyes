@@ -32,6 +32,7 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - 2026-04-18: A fast stale-image check for this project is scanning the built ELF for little-endian RGB888 constants; the current `ws2812-proof` ELF contains `0x00FFAA00`, `0x00AAFF00`, `0x0000FFAA`, and `0x0000AAFF`, while the stale `review-colorful-proof` ELF does not.
 - 2026-04-18: **HARDWARE MILESTONE: Rainbow success confirmed.** Plasma 2350 now displaying multicolor output. User visual confirmation: "We have rainbows!" Colorful animation loop actively playing on embedded ROM. Previous blue-only output resolved.
 - 2026-04-18: The current matrix-order flash target is `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` with SHA-256 `8A9118FE568CCF6D8F4605D3919344AC5579A0797F3CC511FE9647356FEFB6FB`; copying it onto BOOTSEL `D:\` (`RP2350`) cleanly ejects the mass-storage device and the board re-enumerates on `COM10`, but a late USB-CDC attach still may not capture the one-shot boot banner.
+- **2026-04-18 Session (latest-flash):** Launching latest ws2812-proof build flash to validate 256-pixel contract. Dr. Light escalated critical finding: physical panel is 8×32 (256 LEDs), firmware still targets 154-pixel face-mask. User reports "about 2/3 are lighting up." **Next task:** Update firmware constants (TASBOT_LOGICAL_WIDTH 28→32, TASBOT_PHYSICAL_LED_COUNT 154→256), rewrite `kTasbotIndex[8][32]` mapper, extend asset pipeline to 32-wide. Tier 1 (constants/mapper) blocks all 256 LEDs; Tiers 2-3 (asset centering, smoke patterns) needed for correct image display. Latest UF2 ready for BOOTSEL flash validation.
 
 **Team Alignment (2026-04-15):**
 - Portable core identified: minimal API reshaping required
@@ -145,3 +146,7 @@ The 	asbot_layout.c mapper or related indexing code assumes 154 pixels or an inc
 - New symptom: Only partial panel responds; serpentine order may still be incomplete
 
 **Impact:** Cannot proceed to F3 hardware proof until pixel mapping covers all 256 pixels and serpentine order matches physical wiring exactly.
+
+- 2026-04-18: The real panel contract is `8x32 = 256` LEDs, so `pico_build\src\portable\runtime_types.h`, `pico_build\src\firmware\board.h`, `main.c`, and `hw_led_pio.c` must all agree on a 256-entry transport buffer or the frame clears/presents stop near the old 154-pixel limit.
+- 2026-04-18: `pico_build\src\portable\tasbot_layout.c` should use direct column-serpentine math for the live panel (`index = x*8 + y` on even columns, `x*8 + (7-y)` on odd columns) instead of the legacy sparse TASBot occupancy map.
+- 2026-04-18: `pico_build\src\portable\embedded_animation.c` now needs to tolerate source assets smaller than the live panel; the current `colorful.gif` remains 28x8 and is copied into a cleared 32x8 frame until asset generation is widened.
