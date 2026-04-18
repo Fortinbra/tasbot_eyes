@@ -833,18 +833,95 @@ Treat this pass as honest hardware progress:
 
 ## Proto Man: Blue Output Trace Follow-Up (Inbox merge 2026-04-18)
 
-# Proto Man: Blue Output Trace Follow-Up
-
 **Date:** 2026-04-18  
 **Status:** RESOLVED BY HARDWARE SUCCESS
 
-### Summary
-
 I traced the live Pico path from generated asset through mapping and transport. The multicolor data is present in `pico_build\assets\generated\colorful_asset.generated.h`, preserved by `pico_build\src\portable\embedded_animation.c`, mapped into diverse 154-pixel transport colors by `pico_build\src\portable\tasbot_layout.c`, and the running firmware reports stable varying frame checksums in `pico_build\proof\hardware-serial-capture.log`.
 
-### Decision
+**Decision:** Treat **stale UF2 selection** as the highest-probability remaining software root cause for a "still all blue" report.
 
-Treat **stale UF2 selection** as the highest-probability remaining software root cause for a "still all blue" report.
+- `pico_build\build\ws2812-proof\tasbot_eyes_pico.elf` contains representative multicolor frame constants
+- `pico_build\build\review-colorful-proof\tasbot_eyes_pico.elf` does **not**
+- Flash `ws2812-proof` UF2 specifically for next physical validation
+- If display is still blue, next suspect is final strip color order at `hw_led_pio.c`, not the asset or mapper path
+
+---
+
+## Proto Man Decision: Matrix order follows physical column serpentine (Inbox merge 2026-04-18)
+
+**Date:** 2026-04-18  
+**Owner:** Proto Man  
+**Status:** HARDWARE VALIDATION IN PROGRESS
+
+Fortinbra clarified the actual wire order on the Pico-driven LED matrix: the first LED is the top-left lit position, then the chain travels downward in the first logical column, upward in the second, downward in the third, and so on.
+
+**Decision:** Keep the existing 28x8 TASBot occupancy mask, but renumber the Pico-side logical-to-physical map in `pico_build\src\portable\tasbot_layout.c` to a top-left-first column-serpentine order.
+
+**Why:**
+- Matches the real hardware harness instead of the previous legacy index order
+- Preserves all existing logical frame composition and only changes the transport-buffer index mapping
+- Keeps the hot path as a static lookup table rather than introducing runtime coordinate math
+
+**Evidence:**
+- Updated mapper verified to cover each physical index exactly once: 0..153
+- Rebuilt UF2: `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2`
+- UF2 SHA-256: `8A9118FE568CCF6D8F4605D3919344AC5579A0797F3CC511FE9647356FEFB6FB`
+
+**Impact:** After reflashing, logical imagery should align with the real column-snaked hardware: the top-left logical pixel now lands on LED 0 and the image should stop appearing spatially scrambled by the old order.
+
+---
+
+## Dr. Light: Blue-Symptom Crosscheck — Converter Fix Was Necessary but Not Sufficient (Inbox merge 2026-04-18)
+
+**Date:** 2026-04-18  
+**Owner:** Dr. Light  
+**Status:** ACTIVE — requires follow-up experiment
+
+Independent crosscheck of the entire colorful.gif-to-WS2812 pipeline found **no software bug** that explains "still all blue." The asset converter uint32 cast fix was real (data is now correct), but it was **not the root cause of the blue display**. The actual display symptom persists because it was never caused solely by wrong pixel values.
+
+**Pipeline Verified Correct (6 stages):**
+
+| Stage | Component | Verified |
+|-------|-----------|----------|
+| 1 | Converter: GIF → RGB888 `0xRRGGBB` | ✓ Pixel values correct in generated header |
+| 2 | Animation loader: pixel copy into frame | ✓ Correct indexing |
+| 3 | Layout mapper: 28×8 logical → 154 physical | ✓ Index table correct |
+| 4 | WS2812B packer: RGB888 → GRB | ✓ `(G<<24)|(R<<16)|(B<<8)` |
+| 5 | PIO: 24-bit MSB-first, 800 kHz | ✓ Correct for WS2812B |
+| 6 | Build: timestamps align (header, .obj, .uf2 all 2026-04-18 17:21) | ✓ |
+
+**Critical Observation:** No single channel-order permutation produces "all blue" from diverse RGB input. The colorful.gif contains red, orange, green, cyan, blue, magenta, white, and black. A channel swap would produce a *mix* of wrong colors, not uniform blue.
+
+**Remaining Suspects (in likelihood order):**
+1. **Stale UF2 on device**: Rebuild happened but reflash did not (or failed silently). Most common "still broken after fix" cause.
+2. **Never-validated GRB assumption**: `hw_led_pack_ws2812` hard-codes GRB channel order. The physical LEDs have never been probed for channel order.
+3. **Signal integrity**: RP2350 GPIO 15 → Plasma 2350 screw terminal → LED strip. No scope/logic analyzer validation.
+
+**Required Action: Decisive Smoke Experiment**
+
+Proto Man should implement a **blocking pre-animation smoke test** in `main.c`:
+1. Set all 154 LEDs to solid RED (`0xFF0000`), hold 3 seconds
+2. Set all to solid GREEN (`0x00FF00`), hold 3 seconds
+3. Set all to solid BLUE (`0x0000FF`), hold 3 seconds
+4. Set all to solid WHITE (`0xFFFFFF`), hold 3 seconds
+5. Then enter the animation loop
+
+**Observe and report:**
+- If RED→RED, GREEN→GREEN, BLUE→BLUE: packing is correct; issue is stale UF2 or animation path bug
+- If RED→GREEN or RED→BLUE: channel order mismatch; adjust `hw_led_pack_ws2812`
+- If nothing lights up: wiring/pin/flash issue
+
+**Gate Status:** OPEN. Hardware proof remains unvalidated.
+
+---
+
+## Copilot Directive: Matrix layout clarification (Inbox merge 2026-04-18)
+
+**Timestamp:** 2026-04-18T17:25:09.929-05:00  
+**By:** Fortinbra (via Copilot)  
+**Status:** CAPTURED
+
+The LED matrix layout is top-left first, then snakes by column: down the first column, right, up the next column, right, down the next, and so on. This user direction was captured for team memory and informed the matrix-order mapper fix.
 
 - `pico_build\build\ws2812-proof\tasbot_eyes_pico.elf` contains representative multicolor frame constants (`0x00FFAA00`, `0x00AAFF00`, `0x0000FFAA`, `0x0000AAFF`)
 - `pico_build\build\review-colorful-proof\tasbot_eyes_pico.elf` does **not**

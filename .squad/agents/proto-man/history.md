@@ -113,3 +113,6 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 
 **Next Action:** Fortinbra to flash regenerated UF2 and validate colorful.gif playback with serial capture + visual proof.
 
+- 2026-04-18: The live 154-pixel mapper in `pico_build\src\portable\tasbot_layout.c` now follows the real harness order: first physical LED is the top-left lit pixel, then the chain snakes by logical column (down on even columns, up on odd columns) while preserving the existing 28x8 TASBot occupancy mask.
+- 2026-04-18: For this workspace, the reliable rebuild path is the existing `pico_build\build\ws2812-proof` directory with `C:\Users\thegu\.pico-sdk\cmake\v3.31.5\bin\cmake.exe --build ...`; a fresh configure without the cached Pico host tools can fail while trying to build `picotool`.
+- 2026-04-18T22:32:45Z: **Hardware flash attempt — matrix-order mapper validation.** Board re-entered BOOTSEL after mapper fix. Flashing `ws2812-proof` UF2 to D:\ (BOOTSEL volume) to validate board exit and re-enumeration on serial COM port. Mapper update ensures top-left LED now maps correctly to physical index 0 with column-serpentine transport order.

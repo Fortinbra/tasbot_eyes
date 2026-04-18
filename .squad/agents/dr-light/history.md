@@ -21,9 +21,15 @@ Dr. Light leads the Pico SDK migration architecture.
 
 - 📌 Team roster finalized on 2026-04-15.
 - 📌 **2026-04-15 (Session 2):** Four-phase migration strategy captured and merged to decisions.md. Team consensus on phased abstraction, conditional CMake, embedded ROM assets, and serial injection.
+- 📌 **2026-04-18 (Session 19):** Independent crosscheck of full color pipeline after "still all blue." No software bug found. Converter fix was valid but not sufficient. Recommended decisive 4-color smoke test. Hardware proof gate remains OPEN.
 
 ## Learnings
 
+- The Pimoroni Plasma 2350 board header (`pimoroni_plasma2350.h`) does NOT define `PICO_DEFAULT_WS2812_PIN`; board.h falls through to `PLASMA2350_DATA_PIN` (GPIO 15). This is correct but the fallback chain should be documented.
+- No single WS2812B channel-order permutation (GRB↔RGB↔BRG etc.) can produce uniform "all blue" from diverse RGB input. "All blue" symptoms require either stale firmware, data corruption, or a non-color-channel root cause.
+- The asset converter uint32 cast fix (Session 18) was a valid Layer 1 fix but was overclaimed as root-cause resolution. Layer 3 hardware proof was never performed. This violated the hardware-asset-validation-gate pattern.
+- The decisive experiment for channel-order validation is a blocking 4-color smoke test (RED→GREEN→BLUE→WHITE, 3 seconds each) observed on physical hardware before entering the animation loop.
+- Key paths for the full color pipeline: `generate-gif-asset.ps1` → `colorful_asset.generated.h` → `colorful_asset.c` → `embedded_animation.c` → `tasbot_layout.c` → `hw_led_pio.c` (pack function) → `ws2812.pio` (PIO state machine).
 - Migration success depends more on seam control than on superficial build progress.
 - The architecture should preserve the legacy host build, isolate Pico work, and make every phase exit criterion observable.
 - `colorful.gif` on real hardware is the earliest meaningful proof point; smooth playback and fuller feature parity come later.

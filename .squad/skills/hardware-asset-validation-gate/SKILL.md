@@ -107,6 +107,11 @@ if ( -eq ) {
    - Warn if > 50 KB (typical flash budget constraint for embedded firmware).
    - Example: "colorful.gif → 28 KB of frame data (acceptable for 252 KB budget)".
 
+5. **Stale Artifact Audit:**
+   - If multiple build directories exist, inspect the built ELF/UF2 itself for representative asset constants rather than trusting path names or agent notes.
+   - Use little-endian RGB888 constants that only the fixed build should contain (for example `0x00FFAA00`, `0x00AAFF00`, `0x0000FFAA`, `0x0000AAFF`) as fingerprints.
+   - If the generated header is multicolor but the flashed artifact lacks those fingerprints, the bug is stale firmware selection, not the mapper or transport-buffer path.
+
 **Documentation Requirement:**
 - Proof doc (pico_build/proof/colorful-integration-proof.md) records:
   - Generated file paths and sizes
@@ -221,6 +226,7 @@ Collapse any layer, gate does not pass.
 ## Examples
 
 - **GIF → Frame Array (Pico firmware):** Converter produces C header with frame data + delay table; firmware loops playback and logs checksums.
+- **Stale UF2 triage (Pico firmware):** `build\ws2812-proof\tasbot_eyes_pico.elf` containing orange/green/cyan RGB888 constants while `build\review-colorful-proof\tasbot_eyes_pico.elf` lacks them is decisive evidence that the wrong UF2 can preserve a blue-only symptom after the generator was fixed.
 - **Audio → Sample Blob (RTOS):** Converter encodes WAV as binary blob; firmware DMA-streams to DAC and logs frame checksums.
 - **Font → Bitmap Table (LCD):** Converter renders glyphs to bitmap; firmware renders text and validates glyph checksums.
 
@@ -228,6 +234,7 @@ Collapse any layer, gate does not pass.
 
 - **Skipping Layer 1:** "The converter is simple, reproducibility doesn't matter." — Non-determinism always hides until it doesn't; require proof.
 - **Skipping Layer 2:** "The asset is embedded; we'll test it on hardware." — Linking errors and code hygiene issues are cheapest to catch early.
+- **Trusting the build directory name:** assuming any artifact called `tasbot_eyes_pico.uf2` contains the latest generated asset payload.
 - **Skipping Layer 3:** "The hardware test is optional if the build proof passes." — Real hardware exposes timing, memory, and electrical issues offline tests miss.
 - **Collapsing Proof Artifacts:** Presenting converter output as equivalent to hardware playback proof.
 
