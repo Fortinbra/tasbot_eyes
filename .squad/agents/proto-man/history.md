@@ -24,6 +24,9 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - 2026-04-16: The clean Phase 2 firmware seam is `logical 28x8 frame -> TASBot layout mapper -> 154-pixel RGB888 transport buffer -> hw_led driver`, with the firmware loop owning all cadence.
 - 2026-04-16: `led.h`, `gif.h`, `filesystem.h`, and `network.h` are the hard compatibility blockers because they leak `ws2811`, GIFLIB, POSIX directory APIs, sockets, and pthreads across otherwise portable code.
 - 2026-04-18: The blue-only `colorful.gif` symptom traced to `pico_build\tools\generate-gif-asset.ps1`, not the Pico PIO transport; PowerShell channel bytes must be widened to `[uint32]` before `-shl` or red/green bits collapse and the generated header under `pico_build\assets\generated\` turns multicolor frames into mostly blue output.
+- 2026-04-18: The current source-matching hardware image is `pico_build\build\review-colorful-proof\tasbot_eyes_pico.uf2`; `pico_build\src\firmware\main.c` is running the embedded `colorful.gif` loop (18 frames at 100 ms each), not the older smoke-pattern proof image.
+- 2026-04-18: First real Plasma 2350 hardware pass succeeded on the BOOTSEL `D:\` volume and the board re-enumerated as `USB Serial Device` on `COM10`; stable loop proof was captured in `pico_build\proof\hardware-serial-capture.log`, `hardware-validation-run.txt`, `hardware-boot-capture.log`, and `hardware-boot-summary.txt`.
+- 2026-04-18: On this Windows USB-CDC path, opening the COM port after enumeration did not replay the one-shot boot/ready banners even though the runtime loop was clearly alive, so missing ready lines must be recorded as a host-capture limitation rather than guessed away.
 
 **Team Alignment (2026-04-15):**
 - Portable core identified: minimal API reshaping required
