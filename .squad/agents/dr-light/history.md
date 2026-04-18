@@ -24,6 +24,9 @@ Dr. Light leads the Pico SDK migration architecture.
 - 📌 **2026-04-18 (Session 19):** Independent crosscheck of full color pipeline after "still all blue." No software bug found. Converter fix was valid but not sufficient. Recommended decisive 4-color smoke test. Hardware proof gate remains OPEN.
 - 📌 **2026-04-18 Session (latest-flash):** Critical discovery during hardware validation: physical Plasma 2350 is full 8×32 (256 LEDs) but firmware still targets legacy 154-pixel TASBot face-mask. This explains user report: "about 2/3 are lighting up" (154/256 ≈ 60%). Every layer affected: constants (TASBOT_LOGICAL_WIDTH, TASBOT_PHYSICAL_LED_COUNT), `kTasbotIndex` mapper, asset pipeline (28×8 GIFs), smoke patterns, nose mapping, proof tooling. **Tier 1 (constants + 256-entry mapper)** required to drive all LEDs. **Tier 2 (asset centering/padding)** required for recognizable image. **Tier 3 (smoke/proof tooling)** for validation. Decisions #1 (Dr. Light 256-audit) and #2 (Proto Man 256-contract) merged to active queue with full impact assessment. Latest ws2812-proof UF2 ready for BOOTSEL flash validation once contract updates complete.
 
+📌 **2026-04-18T23:07:14Z (Scribe Update):** New display contract established — 224-LED panel-size directive (8×28). This is the canonical active display area for future GIF source generation and pipeline updates. Cross-ref: decisions.md #18.
+
+
 ## Learnings
 
 - The Pimoroni Plasma 2350 board header (`pimoroni_plasma2350.h`) does NOT define `PICO_DEFAULT_WS2812_PIN`; board.h falls through to `PLASMA2350_DATA_PIN` (GPIO 15). This is correct but the fallback chain should be documented.

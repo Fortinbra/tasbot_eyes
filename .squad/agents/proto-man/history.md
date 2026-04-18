@@ -34,6 +34,7 @@ Proto Man: Backend Dev for Pico SDK firmware migration. Project architecture: po
 
 📌 **2026-04-18 Session (Current):** Hardware validation loop closed. User confirmed latest flash working on 256-pixel 8×32 serpentine panel. All 256 LEDs now driven. Firmware constants updated. Mapper rewritten for full-rectangle coverage. Multicolor output confirmed.
 
+📌 **2026-04-18T23:07:14Z (Scribe Update):** New display contract established — 224-LED panel-size directive (8×28). This is the canonical active display area for future GIF source generation. Proto Man updating contract/mapper; Dr. Light auditing interpretation and docs.
 
 
 **Session History (Archived):**

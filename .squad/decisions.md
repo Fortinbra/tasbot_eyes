@@ -1417,3 +1417,46 @@ User confirmed latest flashed build working on hardware. The 256-pixel 8×32 ser
 - ✅ Bring-up cycle complete
 
 **Next Steps:** Proceed with 32×8 asset pipeline expansion for full-panel content display.
+
+---
+
+### 17. Proto Man — Flash Latest 256-Pixel UF2 (BOOTSEL Deployment)
+
+**Date:** 2026-04-18  
+**Owner:** Proto Man  
+**Status:** DECISION — EXECUTED  
+
+**Context:** Fortinbra requested an immediate BOOTSEL flash while the Plasma 2350 was mounted on D:\, using the latest verified 256-pixel Pico build.
+
+**Decision:** Flash C:\ws\tasbot_eyes\pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2 after re-verifying the file exists and SHA-256 matches D55128FDE5396663238FB4978BC3AA6D82110D1DC5FB1FB768BD1D1C2827B108.
+
+**Result:**
+- UF2 copied successfully to BOOTSEL D:\ (RP2350)
+- BOOTSEL volume disappeared; board re-enumerated as USB Serial Device (COM10)
+- Post-enumeration serial attach on COM10 captured no fresh banner bytes
+- Confirms BOOTSEL exit and COM-port recovery
+
+**Blocker:** Late serial attach on COM10 captured no fresh banner bytes, so there is still no new boot transcript from this flash.
+
+---
+
+### 18. Display Contract: 224-LED Panel-Size Directive (8×28)
+
+**Date:** 2026-04-18T23:07:14Z  
+**Owner:** Proto Man, Dr. Light  
+**Status:** ACTIVE — IMPLEMENTATION PASS  
+
+**Context:** User established new active display rule: future GIFs will be 8×28 (224 LEDs). The active display area should be treated as 224 LEDs rather than 154 or the full 256-pixel panel.
+
+**Decision:**
+- Canonical active display footprint is now **8 wide × 28 tall = 224 LEDs**
+- This becomes the new contract for GIF source generation and firmware mapping
+- Physical panel still has 256 positions; the 224-LED constraint defines the semantic "active" area
+
+**Implementation Pass:**
+- **Proto Man:** Updating contract/mapper for 224-LED dimensions
+- **Dr. Light:** Auditing interpretation and docs to ensure 224-LED contract propagates through pipeline
+
+**Impact:** Future animations target 224 LEDs as canonical; panel geometry and asset pipeline must respect this constraint for consistency.
+
+**Status:** In progress — agents executing contract and documentation updates.
