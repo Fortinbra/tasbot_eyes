@@ -34,3 +34,32 @@ Dr. Light leads the Pico SDK migration architecture.
 - The architecture should preserve the legacy host build, isolate Pico work, and make every phase exit criterion observable.
 - `colorful.gif` on real hardware is the earliest meaningful proof point; smooth playback and fuller feature parity come later.
 
+
+### 2026-04-18 (Session Current): Hardware Regression — Board Contract Audit Against 256-Pixel Panel
+
+**Status:** HARDWARE SPECIFICATION MISMATCH; DOCS AUDIT REQUIRED
+
+**Issue:** After matrix-order flash, hardware exhibits partial illumination (only ~two-thirds of panel lighting) with mangled image. User clarified actual panel is 8x32 = 256 pixels.
+
+**Constraint Clarification:**
+- Actual hardware: 8x32 serpentine panel
+- Total pixels: 256
+- Wiring: Physical LED chain snakes by logical column (down on even, up on odd)
+- Mapper context: Top-left lit position is physical index 0
+
+**Audit Scope:**
+1. **Board contract:** Verify pico_build\src\firmware\board.h declares 256-pixel constraint explicitly
+2. **Pipeline documentation:** Audit 	asbot_layout.c documentation for 256-pixel coverage claim
+3. **Hardware manual:** Cross-check Plasma 2350 physical LED count against code assumptions
+4. **Proof gates:** Update hardware-asset-validation-gate to include 256-pixel serpentine confirmation
+
+**Critical Finding:**
+The previous 	asbot_layout.c redesign assumed 154-pixel output, not 256-pixel panel input. This mismatch is the likely cause of partial illumination. The mapper must iterate all 256 physical pixels or explicitly justify why some are left dark.
+
+**Next Action:**
+Coordinate with Proto Man's pixel-mapping audit. Ensure board contract and documentation explicitly state:
+- Panel: 8x32 (256 pixels total)
+- Layout: Column-serpentine (even columns descend, odd columns ascend)
+- Mapping validation: All 256 physical LEDs must be addressable from logical 28x8 frame
+
+**Impact:** Cannot validate hardware until pixel count and serpentine order are fully reconciled across code, docs, and physical board.

@@ -1284,3 +1284,48 @@ That is the next boss fight.
 
 ---
 
+
+## Proto Man — BOOTSEL Reflash (Inbox merge 2026-04-18)
+
+**Date:** 2026-04-18  
+**Owner:** Proto Man  
+**Status:** EXECUTED; BLOCKED BY HARDWARE REGRESSION
+
+**Context:** Fortinbra reported the Plasma 2350 was back in BOOTSEL on \D:\ and asked for the current matrix-order build to be flashed.
+
+**Decision:** Flash \C:\ws\tasbot_eyes\pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2\ after verifying artifact existence and SHA-256 match \8A9118FE568CCF6D8F4605D3919344AC5579A0797F3CC511FE9647356FEFB6FB\.
+
+**Rationale:** This is the validated matrix-order UF2 in the active \ws2812-proof\ build output; hash matches expected post-fix image.
+
+**Operational Result:**
+- UF2 copied successfully to BOOTSEL \D:\ (RP2350)
+- BOOTSEL volume disappeared; board re-enumerated as USB Serial Device (COM10)
+- Post-enumeration serial probe on COM10 captured no fresh banner bytes
+- Confirms BOOTSEL exit and COM-port recovery
+
+**Next Blocker:** Hardware regression discovered post-flash: actual panel is 8x32 (256 pixels), but only ~two-thirds illuminate with mangled image. Proto Man and Dr. Light now tasked to audit pixel-count and serpentine-order mapping.
+
+---
+
+## Hardware Regression Discovery — 8x32 Panel (256 Pixels)
+
+**Date:** 2026-04-18  
+**Owner:** Proto Man, Dr. Light  
+**Status:** REGRESSION ACTIVE; TEAM RECOVERY IN PROGRESS
+
+**Event:** After matrix-order reflash, user reported hardware symptom: actual panel is 8x32 = 256 pixels, but only ~two-thirds illuminate and image is mangled.
+
+**Constraint Clarification:**
+- Hardware: 8x32 serpentine panel = 256 pixels total
+- Wiring: Column-serpentine layout (top-left-first)
+- Observed Symptom: Partial illumination + scrambled image
+
+**Recovery Actions:**
+1. **Proto Man:** Audit and fix pixel-count and serpentine-order mapping in \	asbot_layout.c\ and related indexing code
+2. **Dr. Light:** Cross-validate board contract and documentation against 256-pixel serpentine constraint; audit pipeline for index assumptions
+
+**Root Cause Hypothesis:** Pixel mapping or indexing regression in matrix-order code path; likely off-by-one or incomplete serpentine traversal in layout table.
+
+**Impact:** Prevents F3 hardware proof validation until pixel mapping is restored.
+
+---

@@ -31,6 +31,7 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - 2026-04-18: The portable path is now proven multicolor end-to-end up to the transport buffer: `colorful_asset.generated.h` contains rainbow RGB888 values, `tasbot_embedded_animation_load_frame()` preserves them, `tasbot_layout_blit_frame()` maps them into diverse 154-pixel transport colors, and stable varying frame checksums in `pico_build\proof\hardware-serial-capture.log` mean any remaining blue-only failure is downstream of mapping.
 - 2026-04-18: A fast stale-image check for this project is scanning the built ELF for little-endian RGB888 constants; the current `ws2812-proof` ELF contains `0x00FFAA00`, `0x00AAFF00`, `0x0000FFAA`, and `0x0000AAFF`, while the stale `review-colorful-proof` ELF does not.
 - 2026-04-18: **HARDWARE MILESTONE: Rainbow success confirmed.** Plasma 2350 now displaying multicolor output. User visual confirmation: "We have rainbows!" Colorful animation loop actively playing on embedded ROM. Previous blue-only output resolved.
+- 2026-04-18: The current matrix-order flash target is `pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2` with SHA-256 `8A9118FE568CCF6D8F4605D3919344AC5579A0797F3CC511FE9647356FEFB6FB`; copying it onto BOOTSEL `D:\` (`RP2350`) cleanly ejects the mass-storage device and the board re-enumerates on `COM10`, but a late USB-CDC attach still may not capture the one-shot boot banner.
 
 **Team Alignment (2026-04-15):**
 - Portable core identified: minimal API reshaping required
@@ -116,3 +117,31 @@ This project's core risk is translating Raspberry Pi oriented runtime assumption
 - 2026-04-18: The live 154-pixel mapper in `pico_build\src\portable\tasbot_layout.c` now follows the real harness order: first physical LED is the top-left lit pixel, then the chain snakes by logical column (down on even columns, up on odd columns) while preserving the existing 28x8 TASBot occupancy mask.
 - 2026-04-18: For this workspace, the reliable rebuild path is the existing `pico_build\build\ws2812-proof` directory with `C:\Users\thegu\.pico-sdk\cmake\v3.31.5\bin\cmake.exe --build ...`; a fresh configure without the cached Pico host tools can fail while trying to build `picotool`.
 - 2026-04-18T22:32:45Z: **Hardware flash attempt — matrix-order mapper validation.** Board re-entered BOOTSEL after mapper fix. Flashing `ws2812-proof` UF2 to D:\ (BOOTSEL volume) to validate board exit and re-enumeration on serial COM port. Mapper update ensures top-left LED now maps correctly to physical index 0 with column-serpentine transport order.
+
+### 2026-04-18 (Session Current): Hardware Regression — 256-Pixel Panel Constraint
+
+**Status:** REGRESSION DISCOVERED; PIXEL-MAPPING AUDIT REQUIRED
+
+**Symptom:** After matrix-order BOOTSEL reflash, user reported hardware failure: actual panel is 8x32 = 256 pixels, but only ~two-thirds illuminate with mangled/scrambled image.
+
+**Hardware Constraint Clarified:**
+- Panel: 8x32 serpentine layout
+- Total pixels: 256 (not 154 as previously mapped)
+- Wiring: Column-serpentine (top-left first, snakes down even columns, up odd columns)
+- Observed: Partial illumination + scrambled rendering
+
+**Root Cause Hypothesis:**
+The 	asbot_layout.c mapper or related indexing code assumes 154 pixels or an incorrect serpentine order. The matrix-order fix applied the correct column-serpentine formula but the pixel count may be wrong, or the serpentine traversal is incomplete/off-by-one.
+
+**Required Action:**
+1. Audit pico_build\src\portable\tasbot_layout.c layout table for 256-pixel full coverage
+2. Verify each physical index 0..255 is visited exactly once in serpentine order
+3. Validate top-left physical LED maps to logical (0,0)
+4. Rebuild and flash for hardware validation
+
+**Context:**
+- Previous mapper fix: 	asbot_layout_blit_frame() now uses column-serpentine order
+- Previous validation: Frame checksums varied (multicolor data reached buffer)
+- New symptom: Only partial panel responds; serpentine order may still be incomplete
+
+**Impact:** Cannot proceed to F3 hardware proof until pixel mapping covers all 256 pixels and serpentine order matches physical wiring exactly.
