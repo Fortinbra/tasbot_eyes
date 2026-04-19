@@ -1,0 +1,6 @@
+serial_port=COM10
+boot_banner_count=0
+ready_banner_count=0
+board_contract_count=0
+asset_header_count=0
+asset_frame_lines=95

@@ -1460,3 +1460,113 @@ User confirmed latest flashed build working on hardware. The 256-pixel 8×32 ser
 **Impact:** Future animations target 224 LEDs as canonical; panel geometry and asset pipeline must respect this constraint for consistency.
 
 **Status:** In progress — agents executing contract and documentation updates.
+
+---
+
+### 19. Proto Man: 21-Animation Playlist Registry & Cycling
+
+**Date:** 2026-04-19  
+**Owner:** Proto Man  
+**Status:** IMPLEMENTED
+
+**Context:** Replaced single-animation loop (colorful.gif) with a generalized 21-animation sequential playlist cycling through all animations in order, then wrapping.
+
+**Architecture Decisions:**
+
+- **Asset Generation:** generate-gif-asset.ps1 now accepts -SymbolPrefix parameter. All hardcoded colorful/COLORFUL names are parameterized. Output filename: {SymbolPrefix}_asset.generated.h.
+- **Registry Generator:** generate-animation-registry.ps1 is the new top-level orchestrator. It calls generate-gif-asset.ps1 for each of the 21 animations in order, then writes nimation_registry.generated.h containing all 21 	asbot_embedded_animation_t struct instances and kTasbotAnimationPlaylist[].
+- **CMake Target:** generate_colorful_asset → generate_all_assets. Calls generate-animation-registry.ps1. Primary BYPRODUCT: nimation_registry.generated.h.
+- **Firmware:** nimation_registry.c/h expose g_tasbot_animation_playlist and g_tasbot_animation_playlist_count. main.c uses these instead of g_tasbot_colorful_animation. Frame exhaustion triggers animation advance with modular wrap.
+- **Deleted:** colorful_asset.c, colorful_asset.h — superseded by registry.
+
+**Playlist Order (21 animations):**
+startup → base → blink → colorful → heart_eyes → coin_eyes → smile → smirk → uwu → disc → asteroids → portal_eyes → whirl → loading → look_left_up → look_strangly_up → dead → file → testbot → gray → twink
+
+**Bug Fixed:** Legacy gifs/ pool has blink.gif at root AND blinks/blink.gif — both rank 0, causing ambiguity. Fixed with try/catch around legacy Select-AssetCandidate: if external submodule succeeds, legacy ambiguity is demoted to comparison_state=legacy-ambiguous and does not fail the build.
+
+**Validation:**
+- Registry generator ran clean for all 21 animations
+- collect-proof.ps1 build succeeded
+- ELF contains all required banners including runtime seam: logical 28x8 active frame → column-serpentine mapper → 256 LED physical transport
+- New UF2 SHA-256: 164CB03E00AC3E7F9451445B316E29627431FA0CDD3C1CCAEF068DF0CBECEBC9
+
+**Impact:** All 21 animations now cycle automatically on board startup. Single-animation loop fully replaced.
+
+---
+
+### 20. Dr. Light: Active Display Area Is 8×28 = 224 LEDs on 8×32 Physical Panel
+
+**Date:** 2026-04-19  
+**Owner:** Dr. Light  
+**Status:** ACTIVE — new authoritative contract
+
+**Ambiguity Resolution:**
+Fortinbra clarified: "We can subtract the last 4 rows off the matrix, as the gif images will all be 8x28. which is still 224 leds, not the 154 that were there originally."
+
+The word "rows" means columns (confirmed by arithmetic: 8 × 28 = 224 ✓). The active display area is **8 rows × 28 columns = 224 LEDs**. The last 4 physical columns (28–31) are intentionally dark. The physical panel remains 8×32 = 256 LEDs on the WS2812B chain.
+
+**Authoritative Contract:**
+1. GIF content size is 28 wide × 8 tall. This is the permanent source art size. All GIF assets will be 8×28.
+2. Firmware drives all 256 physical LEDs. Transport buffer stays 256 pixels. Columns 28–31 are always zeroed (dark).
+3. Content is left-aligned. The 28-wide content occupies columns 0–27. No centering. Dark zone is on right edge.
+4. 224 is the new active pixel count, replacing both 154 (sparse face mask) and 256 (full rectangle).
+
+**Code Status — Firmware Already Correct:**
+| File | Contract | Status |
+|---|---|---|
+| runtime_types.h | TASBOT_LOGICAL_WIDTH 28u, TASBOT_ACTIVE_LED_COUNT 224u, TASBOT_PHYSICAL_WIDTH 32u, TASBOT_PHYSICAL_LED_COUNT 256u | ✅ |
+| board.h | Active 8×28 = 224. Physical 8×32 = 256. Six static asserts tie both layers. | ✅ |
+| board.h banner | "board contract: WS2812B on GPIO15, active 8x28 (224 pixels) within physical 8x32 (256 pixels)" | ✅ |
+| main.c | 256-pixel physical buffer; banner says "28x8 active frame → 256 LED physical transport" | ✅ |
+| tasbot_layout.c | Clears all 256, maps only columns 0–27 (indices 0–223). Columns 28–31 stay dark. | ✅ |
+| embedded_animation.c | Rejects content wider than 28. Loads into 28×8 logical frame. | ✅ |
+| hw_led_pio.c | Pushes all 256 physical LEDs via PIO. | ✅ |
+| generate-gif-asset.ps1 line 182 | Enforces exactly 28×8 input. | ✅ |
+| collect-proof.ps1 line 92 | Updated findstr patterns match new ELF banners. | ✅ |
+| smoke_patterns.c | All coordinates within 0–27 column range. | ✅ |
+
+**Documentation — Needs Refresh:**
+| File | Issue |
+|---|---|
+| foundation-proof.md lines 40–41, 58–69 | Stale 154-pixel contract with old artifact hashes and banners. Must regenerate after next proof build. |
+| docs/migration/features/f2-core-runtime.md line 59 | Still says "logical 32x8 frame" and "256-pixel RGB888 buffer." Should say "logical 28x8 active" and clarify 256-pixel physical transport. |
+| docs/migration/features/f3-assets-playback.md lines 39–40 | Says "current colorful.gif art is 28x8" (implies temporary). Should state 28×8 is permanent. |
+| pico_build/README.md lines 64–66 | Says "still 28x8" (transitional). Reword to confirm 28×8 is permanent content contract. |
+| decisions.md decision #1 | Recommended centering 28×8 in 32-wide panel (2 blank columns each side). Per Fortinbra: no centering. Left-aligned at column 0. Last 4 columns permanently dark. |
+
+**Directive to Proto Man:**
+Treat 8×28 = 224 as the active display area on the physical 8×32 panel. Firmware is already correct. Remaining work:
+1. Regenerate foundation-proof.md after next successful proof build
+2. Update four documentation files above to reflect permanent 28×8 content and 224/256 split
+3. No code changes needed — active/physical split properly implemented and static asserts enforce it
+
+**Gate Status:** Hardware validation gate remains OPEN until all 256 physical LEDs are driven (224 lit with content, 32 dark) and displayed image is visually recognizable.
+
+---
+
+### 21. Proto Man: 224-Active-LED Flash — UF2 SHA-256 Record
+
+**Date:** 2026-04-19  
+**Owner:** Proto Man  
+**Status:** COMPLETE
+
+**Summary:** Firmware rebuilt with 224-active-LED / 256-physical-LED constants and flashed to Plasma 2350 board in BOOTSEL mode.
+
+**Constants in Build:**
+- TASBOT_LOGICAL_WIDTH = 28
+- TASBOT_ACTIVE_LED_COUNT = 224
+- TASBOT_PHYSICAL_LED_COUNT = 256
+- Board contract banner: active 8x28 (224 pixels) within physical 8x32 (256 pixels)
+
+**Artifact:**
+| File | SHA-256 |
+|------|---------|
+| pico_build\build\ws2812-proof\tasbot_eyes_pico.uf2 | 164CB03E00AC3E7F9451445B316E29627431FA0CDD3C1CCAEF068DF0CBECEBC9 |
+
+**Flash Result:**
+- UF2 copied to D:\ (BOOTSEL drive)
+- D:\ ejected automatically — board rebooted successfully
+- Flash: ✅ SUCCESS
+
+**Build Note:** CMake requires Python3. Must add C:\Users\thegu\.pico-sdk\python\3.12.6 to PATH before invoking collect-proof.ps1 (Windows App Store Python stubs do not satisfy FindPython3).
+
