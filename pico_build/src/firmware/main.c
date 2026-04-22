@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "pico/stdlib.h"
+#include "hardware/watchdog.h"
 
 #include "animation_registry.h"
 #include "board.h"
@@ -10,8 +11,10 @@
 
 int main(void)
 {
-    tasbot_frame_t logical_frame;
-    tasbot_color_t physical_leds[TASBOT_EYES_PHYSICAL_LED_PIXEL_COUNT];
+    /* Keep large buffers in static storage — together they consume ~1.9 KB,
+       which exceeds the default 2 KB Pico stack and causes a hard fault. */
+    static tasbot_frame_t logical_frame;
+    static tasbot_color_t physical_leds[TASBOT_EYES_PHYSICAL_LED_PIXEL_COUNT];
     hw_led_metrics_t metrics;
     const tasbot_embedded_animation_t* anim;
     uint32_t ready_emit = 0u;
@@ -33,15 +36,26 @@ int main(void)
          TASBOT_EYES_STRINGIFY(TASBOT_EYES_PHYSICAL_LED_PIXEL_COUNT) " LED physical transport");
     printf("[playlist] %u animations loaded\n", (unsigned)g_tasbot_animation_playlist_count);
 
+    /* Enable the watchdog NOW — before hw_led_init() — so that a deadlock in
+       the PIO clear-frame push (which runs inside hw_led_init) triggers an
+       automatic reset.  The boot delay above is ~3 s; 8 s gives ample margin
+       before the first watchdog_update() in the animation loop below. */
+    watchdog_enable(8000, true);
+
     if (!hw_led_init()) {
         puts("hw_led_init failed");
         return 1;
     }
 
-    if (g_tasbot_animation_playlist_count == 0u) {
-        puts("g_tasbot_animation_playlist_count must be greater than zero");
+    if (g_tasbot_animation_playlist_count < 2u) {
+        puts("g_tasbot_animation_playlist_count must be at least 2 (boot + cycle)");
         return 1;
     }
+
+    /* Skip startup animation — jump straight into the cycling playlist. */
+    animation_index = 1u;
+    frame_index = 0u;
+    printf("[playlist] starting with: %s\n", g_tasbot_animation_playlist[animation_index]->name);
 
     while (true) {
         anim = g_tasbot_animation_playlist[animation_index];
@@ -65,20 +79,15 @@ int main(void)
             return 1;
         }
 
-        printf("[asset] frame=%u/%u delay=%u ms lit=%lu checksum=%08lx\n",
-               (unsigned)(frame_index + 1u),
-               (unsigned)anim->frame_count,
-               (unsigned)delay_ms,
-               (unsigned long)metrics.last_lit_pixels,
-               (unsigned long)metrics.last_checksum);
-
         frame_index = (uint16_t)(frame_index + 1u);
         if (frame_index >= anim->frame_count) {
             frame_index = 0u;
-            animation_index = (uint16_t)((animation_index + 1u) % g_tasbot_animation_playlist_count);
+            /* Cycle through animations 1..N-1, wrapping back to 1 (not 0). */
+            animation_index = (uint16_t)(((animation_index - 1u + 1u) % (g_tasbot_animation_playlist_count - 1u)) + 1u);
             printf("[playlist] switching to: %s\n", g_tasbot_animation_playlist[animation_index]->name);
         }
 
+        watchdog_update();
         sleep_ms(delay_ms);
     }
 }

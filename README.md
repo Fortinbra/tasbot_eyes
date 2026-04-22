@@ -1,5 +1,9 @@
 # tasbot_eyes
 
+> Migration planning and feature docs now live under `docs\`. Start with `docs\README.md`, then `docs\migration\README.md`.
+
+> Animation source policy: keep the legacy root `gifs\` tree untouched as a local reference, and use `external\TASBot-eye-animations\` as the tracked comparison source for the future offline UF2 asset pipeline.
+
 * [Dependencies and credit](#dependencies-and-credit)
 * [Install](#install)
 * [How it works](#how-it-works)

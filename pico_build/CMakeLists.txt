@@ -60,10 +60,15 @@ target_link_libraries(tasbot_eyes_pico
     pico_stdlib
     hardware_clocks
     hardware_pio
+    hardware_watchdog
 )
 
-pico_enable_stdio_usb(tasbot_eyes_pico 1)
-pico_enable_stdio_uart(tasbot_eyes_pico 0)
+# Use UART (GPIO 0/1 at 115200 baud) instead of USB CDC.
+# USB CDC requires TinyUSB interrupt handlers that share the 2 KB main stack;
+# combined with the animation loop call depth this can overflow the stack and
+# produce a hard fault that survives hardware reset.  UART has no such overhead.
+pico_enable_stdio_usb(tasbot_eyes_pico 0)
+pico_enable_stdio_uart(tasbot_eyes_pico 1)
 
 pico_add_extra_outputs(tasbot_eyes_pico)
 

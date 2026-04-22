@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "pico/stdlib.h"
+#include "pico/time.h"
 #include "hardware/pio.h"
 
 #include "board.h"
@@ -34,9 +35,47 @@ static uint32_t hw_led_checksum_step(uint32_t hash, tasbot_color_t color)
     return hash;
 }
 
+/* Restart the PIO state machine to recover from a stuck state.
+   Disables the SM, flushes its FIFOs, resets execution state, then
+   restarts from the beginning of the ws2812 program. */
+static void hw_led_sm_restart(void)
+{
+    pio_sm_set_enabled(g_hw_led.pio, g_hw_led.sm, false);
+    pio_sm_clear_fifos(g_hw_led.pio, g_hw_led.sm);
+    pio_sm_restart(g_hw_led.pio, g_hw_led.sm);
+    pio_sm_exec(g_hw_led.pio, g_hw_led.sm, pio_encode_jmp(g_hw_led.offset));
+    pio_sm_set_enabled(g_hw_led.pio, g_hw_led.sm, true);
+}
+
+/* Put one packed WS2812 word into the PIO TX FIFO with a timeout guard.
+   At 800 KHz with an 8-deep FIFO the worst-case drain time is ~240 µs.
+   If the FIFO does not accept the word within 10 ms the SM is considered
+   stuck: we restart it and skip this pixel (glitch beats permanent hang). */
+static void hw_led_push_word(uint32_t word)
+{
+    const uint32_t kTimeoutUs = 10000u;
+    uint64_t deadline = time_us_64() + kTimeoutUs;
+    while (pio_sm_is_tx_fifo_full(g_hw_led.pio, g_hw_led.sm)) {
+        if (time_us_64() > deadline) {
+            hw_led_sm_restart();
+            return;
+        }
+        tight_loop_contents();
+    }
+    pio_sm_put(g_hw_led.pio, g_hw_led.sm, word);
+}
+
 static void hw_led_wait_for_reset(PIO pio, uint sm)
 {
+    /* 100 ms is far beyond the expected ~250 µs FIFO drain time.
+       If exceeded the SM is stuck — restart it and proceed. */
+    const uint32_t kTimeoutUs = 100000u;
+    uint64_t deadline = time_us_64() + kTimeoutUs;
     while (!pio_sm_is_tx_fifo_empty(pio, sm)) {
+        if (time_us_64() > deadline) {
+            hw_led_sm_restart();
+            break;
+        }
         tight_loop_contents();
     }
 
@@ -46,7 +85,7 @@ static void hw_led_wait_for_reset(PIO pio, uint sm)
 static void hw_led_push_frame(const tasbot_color_t* leds, size_t led_count)
 {
     for (size_t i = 0; i < led_count; ++i) {
-        pio_sm_put_blocking(g_hw_led.pio, g_hw_led.sm, hw_led_pack_ws2812(leds[i]));
+        hw_led_push_word(hw_led_pack_ws2812(leds[i]));
     }
 
     hw_led_wait_for_reset(g_hw_led.pio, g_hw_led.sm);
@@ -103,7 +142,7 @@ bool hw_led_present_rgb888(const tasbot_color_t* leds, size_t led_count, hw_led_
         }
 
         checksum = hw_led_checksum_step(checksum, color);
-        pio_sm_put_blocking(g_hw_led.pio, g_hw_led.sm, hw_led_pack_ws2812(color));
+        hw_led_push_word(hw_led_pack_ws2812(color));
     }
 
     hw_led_wait_for_reset(g_hw_led.pio, g_hw_led.sm);
