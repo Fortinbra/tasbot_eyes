@@ -67,6 +67,5 @@ jobs:
             pico_build/build/ci/tasbot_eyes_pico.bin
             pico_build/build/ci/tasbot_eyes_pico.hex
             pico_build/build/ci/tasbot_eyes_pico.dis
-            pico_build/assets/generated/animation_registry.generated.h
-            pico_build/assets/generated/*.metadata.txt
+            pico_build/assets/generated/**
           if-no-files-found: error
