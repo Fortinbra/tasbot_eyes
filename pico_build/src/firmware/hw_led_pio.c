@@ -19,11 +19,16 @@ typedef struct hw_led_context {
 
 static hw_led_context_t g_hw_led;
 
+static uint32_t hw_led_scale_channel(uint32_t channel)
+{
+    return ((channel * TASBOT_EYES_GLOBAL_BRIGHTNESS_PERCENT) + 50u) / 100u;
+}
+
 static uint32_t hw_led_pack_ws2812(tasbot_color_t color)
 {
-    uint32_t red = (color >> 16) & 0xffu;
-    uint32_t green = (color >> 8) & 0xffu;
-    uint32_t blue = color & 0xffu;
+    uint32_t red = hw_led_scale_channel((color >> 16) & 0xffu);
+    uint32_t green = hw_led_scale_channel((color >> 8) & 0xffu);
+    uint32_t blue = hw_led_scale_channel(color & 0xffu);
 
     return (green << 24) | (red << 16) | (blue << 8);
 }
