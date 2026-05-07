@@ -1,0 +1,67 @@
+name: Build Pico UF2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pico_build/**'
+      - 'external/TASBot-eye-animations/**'
+      - '.github/workflows/build-pico-uf2.yml'
+  pull_request:
+    paths:
+      - 'pico_build/**'
+      - 'external/TASBot-eye-animations/**'
+      - '.github/workflows/build-pico-uf2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            ninja-build \
+            gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi \
+            build-essential \
+            git \
+            libgdiplus
+
+      - name: Fetch Pico SDK
+        run: |
+          git clone --depth 1 https://github.com/raspberrypi/pico-sdk.git "$GITHUB_WORKSPACE/pico-sdk"
+          git -C "$GITHUB_WORKSPACE/pico-sdk" submodule update --init --recursive
+
+      - name: Configure CMake
+        run: |
+          cmake \
+            -S pico_build \
+            -B pico_build/build/ci \
+            -G Ninja \
+            -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk" \
+            -DPICO_BOARD=pimoroni_plasma2350 \
+            -DTASBOT_ENABLE_ASSET_GENERATION=OFF
+
+      - name: Build firmware
+        run: cmake --build pico_build/build/ci --parallel
+
+      - name: Upload UF2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasbot-eyes-pico-uf2
+          path: |
+            pico_build/build/ci/tasbot_eyes_pico.uf2
+          if-no-files-found: error

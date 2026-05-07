@@ -15,29 +15,33 @@ project(tasbot_eyes_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-pico_sdk_init()
+option(TASBOT_ENABLE_ASSET_GENERATION "Generate animation assets during build" ON)
 
-find_program(POWERSHELL_EXECUTABLE NAMES powershell.exe pwsh REQUIRED)
+pico_sdk_init()
 
 set(TASBOT_GENERATED_ASSET_DIR ${CMAKE_CURRENT_LIST_DIR}/assets/generated)
 set(TASBOT_ANIMATION_REGISTRY_HEADER ${TASBOT_GENERATED_ASSET_DIR}/animation_registry.generated.h)
 
-add_custom_target(generate_all_assets
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${TASBOT_GENERATED_ASSET_DIR}
-    COMMAND ${POWERSHELL_EXECUTABLE}
-        -NoProfile
-        -ExecutionPolicy Bypass
-        -File ${CMAKE_CURRENT_LIST_DIR}/tools/generate-animation-registry.ps1
-        -ProjectRoot ${CMAKE_CURRENT_LIST_DIR}
-        -OutputDir ${TASBOT_GENERATED_ASSET_DIR}
-    BYPRODUCTS
-        ${TASBOT_ANIMATION_REGISTRY_HEADER}
-    DEPENDS
-        ${CMAKE_CURRENT_LIST_DIR}/tools/generate-animation-registry.ps1
-        ${CMAKE_CURRENT_LIST_DIR}/tools/generate-gif-asset.ps1
-    COMMENT "Generating all embedded animation assets and registry"
-    VERBATIM
-)
+if(TASBOT_ENABLE_ASSET_GENERATION)
+    find_program(POWERSHELL_EXECUTABLE NAMES powershell.exe pwsh REQUIRED)
+
+    add_custom_target(generate_all_assets
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${TASBOT_GENERATED_ASSET_DIR}
+        COMMAND ${POWERSHELL_EXECUTABLE}
+            -NoProfile
+            -ExecutionPolicy Bypass
+            -File ${CMAKE_CURRENT_LIST_DIR}/tools/generate-animation-registry.ps1
+            -ProjectRoot ${CMAKE_CURRENT_LIST_DIR}
+            -OutputDir ${TASBOT_GENERATED_ASSET_DIR}
+        BYPRODUCTS
+            ${TASBOT_ANIMATION_REGISTRY_HEADER}
+        DEPENDS
+            ${CMAKE_CURRENT_LIST_DIR}/tools/generate-animation-registry.ps1
+            ${CMAKE_CURRENT_LIST_DIR}/tools/generate-gif-asset.ps1
+        COMMENT "Generating all embedded animation assets and registry"
+        VERBATIM
+    )
+endif()
 
 add_executable(tasbot_eyes_pico
     src/firmware/animation_registry.c
@@ -48,7 +52,11 @@ add_executable(tasbot_eyes_pico
     src/portable/smoke_patterns.c
 )
 
-add_dependencies(tasbot_eyes_pico generate_all_assets)
+if(TASBOT_ENABLE_ASSET_GENERATION)
+    add_dependencies(tasbot_eyes_pico generate_all_assets)
+else()
+    message(STATUS "Asset generation disabled; using checked-in generated assets")
+endif()
 
 target_include_directories(tasbot_eyes_pico PRIVATE
     ${TASBOT_GENERATED_ASSET_DIR}
