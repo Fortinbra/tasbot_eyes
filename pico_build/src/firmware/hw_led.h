@@ -14,3 +14,5 @@ typedef struct hw_led_metrics {
 
 bool hw_led_init(void);
 bool hw_led_present_rgb888(const tasbot_color_t* leds, size_t led_count, hw_led_metrics_t* metrics);
+void hw_led_set_brightness_percent(uint8_t percent);
+uint8_t hw_led_get_brightness_percent(void);
