@@ -15,6 +15,8 @@ project(tasbot_eyes_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+option(TASBOT_ENABLE_ASSET_GENERATION "Generate animation assets during build" ON)
+
 pico_sdk_init()
 
 find_program(POWERSHELL_EXECUTABLE NAMES powershell.exe pwsh REQUIRED)
@@ -48,7 +50,11 @@ add_executable(tasbot_eyes_pico
     src/portable/smoke_patterns.c
 )
 
-add_dependencies(tasbot_eyes_pico generate_all_assets)
+if(TASBOT_ENABLE_ASSET_GENERATION)
+    add_dependencies(tasbot_eyes_pico generate_all_assets)
+else()
+    message(STATUS "Asset generation disabled; using checked-in generated assets")
+endif()
 
 target_include_directories(tasbot_eyes_pico PRIVATE
     ${TASBOT_GENERATED_ASSET_DIR}

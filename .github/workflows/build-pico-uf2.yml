@@ -52,7 +52,8 @@ jobs:
             -B pico_build/build/ci \
             -G Ninja \
             -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk" \
-            -DPICO_BOARD=pimoroni_plasma2350
+            -DPICO_BOARD=pimoroni_plasma2350 \
+            -DTASBOT_ENABLE_ASSET_GENERATION=OFF
 
       - name: Build firmware
         run: cmake --build pico_build/build/ci --parallel
