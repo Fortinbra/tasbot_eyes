@@ -58,15 +58,10 @@ jobs:
       - name: Build firmware
         run: cmake --build pico_build/build/ci --parallel
 
-      - name: Upload UF2 and firmware artifacts
+      - name: Upload UF2 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tasbot-eyes-pico-firmware
+          name: tasbot-eyes-pico-uf2
           path: |
             pico_build/build/ci/tasbot_eyes_pico.uf2
-            pico_build/build/ci/tasbot_eyes_pico.elf
-            pico_build/build/ci/tasbot_eyes_pico.bin
-            pico_build/build/ci/tasbot_eyes_pico.hex
-            pico_build/build/ci/tasbot_eyes_pico.dis
-            pico_build/assets/generated/**
           if-no-files-found: error
