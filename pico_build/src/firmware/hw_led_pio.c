@@ -18,12 +18,18 @@ typedef struct hw_led_context {
 } hw_led_context_t;
 
 static hw_led_context_t g_hw_led;
+static uint8_t g_hw_led_brightness_percent = TASBOT_EYES_GLOBAL_BRIGHTNESS_PERCENT;
+
+static uint32_t hw_led_scale_channel(uint32_t channel)
+{
+    return ((channel * g_hw_led_brightness_percent) + 50u) / 100u;
+}
 
 static uint32_t hw_led_pack_ws2812(tasbot_color_t color)
 {
-    uint32_t red = (color >> 16) & 0xffu;
-    uint32_t green = (color >> 8) & 0xffu;
-    uint32_t blue = color & 0xffu;
+    uint32_t red = hw_led_scale_channel((color >> 16) & 0xffu);
+    uint32_t green = hw_led_scale_channel((color >> 8) & 0xffu);
+    uint32_t blue = hw_led_scale_channel(color & 0xffu);
 
     return (green << 24) | (red << 16) | (blue << 8);
 }
@@ -156,4 +162,18 @@ bool hw_led_present_rgb888(const tasbot_color_t* leds, size_t led_count, hw_led_
     }
 
     return true;
+}
+
+void hw_led_set_brightness_percent(uint8_t percent)
+{
+    if (percent > 100u) {
+        percent = 100u;
+    }
+
+    g_hw_led_brightness_percent = percent;
+}
+
+uint8_t hw_led_get_brightness_percent(void)
+{
+    return g_hw_led_brightness_percent;
 }

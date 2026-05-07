@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "pico/stdlib.h"
+#include "hardware/gpio.h"
 #include "hardware/watchdog.h"
 
 #include "animation_registry.h"
@@ -21,6 +22,14 @@ int main(void)
     uint16_t animation_index = 0u;
     uint16_t frame_index = 0u;
     uint16_t delay_ms;
+    bool button_was_pressed = false;
+    uint64_t button_debounce_until_us = 0u;
+    uint8_t brightness_level_index = 0u;
+    static const uint8_t kBrightnessLevels[] = {
+        TASBOT_EYES_BRIGHTNESS_LEVEL_0_PERCENT,
+        TASBOT_EYES_BRIGHTNESS_LEVEL_1_PERCENT,
+        TASBOT_EYES_BRIGHTNESS_LEVEL_2_PERCENT
+    };
 
     stdio_init_all();
     puts(TASBOT_EYES_BOOT_BANNER);
@@ -46,6 +55,16 @@ int main(void)
         puts("hw_led_init failed");
         return 1;
     }
+
+    gpio_init(TASBOT_EYES_BRIGHTNESS_BUTTON_PIN);
+    gpio_set_dir(TASBOT_EYES_BRIGHTNESS_BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(TASBOT_EYES_BRIGHTNESS_BUTTON_PIN);
+
+    hw_led_set_brightness_percent(kBrightnessLevels[brightness_level_index]);
+    printf("[brightness] %u%% (button GPIO%u, source %s)\n",
+           (unsigned)hw_led_get_brightness_percent(),
+           (unsigned)TASBOT_EYES_BRIGHTNESS_BUTTON_PIN,
+           TASBOT_EYES_BRIGHTNESS_BUTTON_PIN_SOURCE);
 
     if (g_tasbot_animation_playlist_count < 2u) {
         puts("g_tasbot_animation_playlist_count must be at least 2 (boot + cycle)");
@@ -73,6 +92,20 @@ int main(void)
         }
 
         tasbot_layout_blit_frame(&logical_frame, physical_leds, TASBOT_EYES_PHYSICAL_LED_PIXEL_COUNT);
+
+        {
+            bool button_pressed = gpio_get(TASBOT_EYES_BRIGHTNESS_BUTTON_PIN) == 0u;
+            uint64_t now_us = time_us_64();
+
+            if (button_pressed && !button_was_pressed && now_us >= button_debounce_until_us) {
+                brightness_level_index = (uint8_t)((brightness_level_index + 1u) % (sizeof(kBrightnessLevels) / sizeof(kBrightnessLevels[0])));
+                hw_led_set_brightness_percent(kBrightnessLevels[brightness_level_index]);
+                button_debounce_until_us = now_us + TASBOT_EYES_BRIGHTNESS_BUTTON_DEBOUNCE_US;
+                printf("[brightness] %u%%\n", (unsigned)hw_led_get_brightness_percent());
+            }
+
+            button_was_pressed = button_pressed;
+        }
 
         if (!hw_led_present_rgb888(physical_leds, TASBOT_EYES_PHYSICAL_LED_PIXEL_COUNT, &metrics)) {
             puts("hw_led_present_rgb888 failed");
