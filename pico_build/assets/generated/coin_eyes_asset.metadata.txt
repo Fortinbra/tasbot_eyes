@@ -1,0 +1,11 @@
+asset_name=coin eyes.gif
+selected_source=external\TASBot-eye-animations\gifs\others\coin eyes.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=8AF9F81E6A8B3F94D9C7DCBCF50942AC3AB464E57FEE4A904EB2DB682F97114F
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\coin eyes.gif
+legacy_candidates=gifs\others\coin eyes.gif; gifs\othersBackup\coin eyes.gif
+dimensions=28x8
+frame_count=32
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

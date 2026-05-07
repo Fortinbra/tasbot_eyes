@@ -1,0 +1,11 @@
+asset_name=uwu.gif
+selected_source=external\TASBot-eye-animations\gifs\others\uwu.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=A75DCD0EAAD2B12F730EAC52A2FC88115CE20CC6CF726E58CA9A1A0CEFE899CF
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\uwu.gif
+legacy_candidates=gifs\others\uwu.gif; gifs\othersBackup\uwu.gif
+dimensions=28x8
+frame_count=18
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

@@ -1,0 +1,11 @@
+asset_name=smile.gif
+selected_source=external\TASBot-eye-animations\gifs\others\smile.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=A699330D85589D8D912DC50CFCAAC73CF1E88FF09854376B6DF3D265B6E9CB92
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\smile.gif
+legacy_candidates=gifs\others\smile.gif; gifs\othersBackup\smile.gif
+dimensions=28x8
+frame_count=18
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

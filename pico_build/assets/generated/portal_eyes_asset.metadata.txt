@@ -1,0 +1,11 @@
+asset_name=portal_eyes.gif
+selected_source=external\TASBot-eye-animations\gifs\others\portal_eyes.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=4C8B2133DB91FDEAE320FFE69C8B96ECFE5FA4C48E29C48242A8C784BB79FF94
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\portal_eyes.gif
+legacy_candidates=gifs\others\portal_eyes.gif; gifs\othersBackup\portal_eyes.gif
+dimensions=28x8
+frame_count=10
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100

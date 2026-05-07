@@ -1,0 +1,11 @@
+asset_name=blink.gif
+selected_source=external\TASBot-eye-animations\gifs\blinks\blink.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=34DBD7CD196A98B1A741AA2E3C684EC7015FA647ADBDF31D135E8BC38E459579
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=legacy-ambiguous
+external_candidates=external\TASBot-eye-animations\gifs\blinks\blink.gif
+legacy_candidates=gifs\blink.gif; gifs\blinks\blink.gif
+dimensions=28x8
+frame_count=5
+frame_delays_ms=100,100,100,100,100

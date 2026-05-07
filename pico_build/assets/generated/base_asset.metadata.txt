@@ -1,0 +1,11 @@
+asset_name=base.gif
+selected_source=external\TASBot-eye-animations\gifs\base.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=1D1A2397EAC2844481F458B369DEA1BE3EABC8C17260609920D30D8BF4535ED4
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\base.gif
+legacy_candidates=gifs\base.gif; gifs\othersBackup\base.gif
+dimensions=28x8
+frame_count=1
+frame_delays_ms=100

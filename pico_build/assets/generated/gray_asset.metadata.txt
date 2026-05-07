@@ -1,0 +1,11 @@
+asset_name=gray.gif
+selected_source=external\TASBot-eye-animations\gifs\gray.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=82A42E9BAFBBE8FAEC78A0EFE9DD98A7CEE804C43C44DD36B9CC2CFFA37CD496
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=submodule-only
+external_candidates=external\TASBot-eye-animations\gifs\gray.gif
+legacy_candidates=
+dimensions=28x8
+frame_count=1
+frame_delays_ms=100

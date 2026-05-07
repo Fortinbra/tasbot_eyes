@@ -1,0 +1,11 @@
+asset_name=heart eyes.gif
+selected_source=external\TASBot-eye-animations\gifs\others\heart eyes.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=A0B4A9B1C1CF0A9F0D073E9A7427F3C8F18EFD42E568513D43CD7DE02AB4397D
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\heart eyes.gif
+legacy_candidates=gifs\others\heart eyes.gif; gifs\othersBackup\heart eyes.gif
+dimensions=28x8
+frame_count=26
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

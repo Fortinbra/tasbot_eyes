@@ -1,0 +1,11 @@
+asset_name=colorful.gif
+selected_source=external\TASBot-eye-animations\gifs\others\colorful.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=5967F5C9C25A17E3332E82EA35A01E61BBC98385331CA462BC1AA2A49BFE107C
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\colorful.gif
+legacy_candidates=gifs\others\colorful.gif; gifs\othersBackup\colorful.gif
+dimensions=28x8
+frame_count=18
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

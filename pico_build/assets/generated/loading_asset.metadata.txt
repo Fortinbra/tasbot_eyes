@@ -1,0 +1,11 @@
+asset_name=loading.gif
+selected_source=external\TASBot-eye-animations\gifs\others\loading.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=615C92A72D9405EBD3F8875DA36A37BDBBF95A878044975BA0211EA296C45484
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\loading.gif
+legacy_candidates=gifs\others\loading.gif; gifs\othersBackup\loading.gif
+dimensions=28x8
+frame_count=32
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

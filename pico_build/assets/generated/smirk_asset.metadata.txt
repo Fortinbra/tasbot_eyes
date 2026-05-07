@@ -1,0 +1,11 @@
+asset_name=smirk.gif
+selected_source=external\TASBot-eye-animations\gifs\others\smirk.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=BEF82946F05C035B1135F11D0E553BB1A8AE43145DED7C67EEC1CABD15123BE8
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\smirk.gif
+legacy_candidates=gifs\others\smirk.gif; gifs\othersBackup\smirk.gif
+dimensions=28x8
+frame_count=16
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

@@ -1,0 +1,11 @@
+asset_name=testbot.gif
+selected_source=external\TASBot-eye-animations\gifs\testbot.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=1D31C5F8FEF2F0932580A2CC5F64823E8072BC509478F2FC134A497324FA79C9
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=submodule-only
+external_candidates=external\TASBot-eye-animations\gifs\testbot.gif
+legacy_candidates=
+dimensions=28x8
+frame_count=1
+frame_delays_ms=100

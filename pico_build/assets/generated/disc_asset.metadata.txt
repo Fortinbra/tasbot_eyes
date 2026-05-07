@@ -1,0 +1,11 @@
+asset_name=disc.gif
+selected_source=external\TASBot-eye-animations\gifs\others\disc.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=358DFE4C2D4EA3399F38B45764349BD6D4A0F02CAFDB25CC80441C51D69A15B3
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\disc.gif
+legacy_candidates=gifs\others\disc.gif; gifs\othersBackup\disc.gif
+dimensions=28x8
+frame_count=18
+frame_delays_ms=100,100,100,100,100,200,200,200,200,200,200,200,200,100,100,100,100,100

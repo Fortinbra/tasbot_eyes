@@ -1,0 +1,11 @@
+asset_name=look left up.gif
+selected_source=external\TASBot-eye-animations\gifs\others\look left up.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=1DBAB5FCD800E3F0881EB9EAA06FC7530E02EBCEA1608E4F7311AB5BEBB6F00B
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\look left up.gif
+legacy_candidates=gifs\others\look left up.gif; gifs\othersBackup\look left up.gif
+dimensions=28x8
+frame_count=34
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100

@@ -1,0 +1,11 @@
+asset_name=look strangly up.gif
+selected_source=external\TASBot-eye-animations\gifs\others\look strangly up.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=56B4E4E2279F9CD33E8F60AA86C92DF4B8C136086FD006EE8C835AF543A8EF0D
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\look strangly up.gif
+legacy_candidates=gifs\others\look strangly up.gif; gifs\othersBackup\look strangly up.gif
+dimensions=28x8
+frame_count=17
+frame_delays_ms=50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50

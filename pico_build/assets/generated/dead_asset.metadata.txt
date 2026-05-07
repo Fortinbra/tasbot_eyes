@@ -1,0 +1,11 @@
+asset_name=dead.gif
+selected_source=external\TASBot-eye-animations\gifs\others\dead.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=D6CBDDFC0A9841928BFBD9AB39E73E2160F7FCAADAB3824592BB662356DB3DEC
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\dead.gif
+legacy_candidates=gifs\others\dead.gif; gifs\othersBackup\dead.gif
+dimensions=28x8
+frame_count=15
+frame_delays_ms=100,100,100,100,100,100,100,100,100,750,100,100,100,100,100

@@ -1,0 +1,11 @@
+asset_name=whirl.gif
+selected_source=external\TASBot-eye-animations\gifs\others\whirl.gif
+selected_pool=external\TASBot-eye-animations\gifs
+selected_sha256=AE62C4FFA17FB8E33C65E999A9D276AE01D014BDD105608B87E19DD6AF379C5C
+source_rule=prefer submodule, fall back to root gifs, fail loudly otherwise
+comparison_state=identical
+external_candidates=external\TASBot-eye-animations\gifs\others\whirl.gif
+legacy_candidates=gifs\others\whirl.gif; gifs\othersBackup\whirl.gif
+dimensions=28x8
+frame_count=10
+frame_delays_ms=100,100,100,100,100,100,100,100,100,100
