@@ -1,0 +1,78 @@
+name: Build Pico firmware
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-pico-firmware.yml'
+      - '.gitmodules'
+      - 'external/TASBot-eye-animations'
+      - 'gifs/**'
+      - 'pico_build/**'
+  pull_request:
+    paths:
+      - '.github/workflows/build-pico-firmware.yml'
+      - '.gitmodules'
+      - 'external/TASBot-eye-animations'
+      - 'gifs/**'
+      - 'pico_build/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      BUILD_DIR: ${{ github.workspace }}/pico_build/build/github-actions
+      DOTNET_SYSTEM_DRAWING_ENABLE_WINDOWS_COMPATIBILITY: "1"
+      PICO_BOARD: pimoroni_plasma2350
+      PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout Pico SDK
+        uses: actions/checkout@v4
+        with:
+          repository: raspberrypi/pico-sdk
+          ref: "2.2.0"
+          path: pico-sdk
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            gcc-arm-none-eabi \
+            libgdiplus \
+            libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib \
+            ninja-build
+
+      - name: Configure Pico firmware
+        run: >
+          cmake
+          -S "${GITHUB_WORKSPACE}/pico_build"
+          -B "${BUILD_DIR}"
+          -G Ninja
+          -DPICO_SDK_PATH="${PICO_SDK_PATH}"
+          -DPICO_BOARD="${PICO_BOARD}"
+
+      - name: Build Pico firmware
+        run: cmake --build "${BUILD_DIR}"
+
+      - name: Upload UF2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasbot-eyes-pico-uf2
+          path: ${{ env.BUILD_DIR }}/tasbot_eyes_pico.uf2
+          if-no-files-found: error

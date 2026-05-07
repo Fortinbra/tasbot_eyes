@@ -41,6 +41,10 @@ The script:
 3. confirms the boot/ready banners plus the board contract are embedded in the ELF
 4. inventories serial ports and, if `-SerialPort COMx` is provided, captures boot output for the requested window
 
+## CI artifact workflow
+
+GitHub Actions now includes `Build Pico firmware`, which checks out the animation submodule plus the Pico SDK, builds `pico_build\`, and publishes `tasbot_eyes_pico.uf2` as the downloadable `tasbot-eyes-pico-uf2` artifact.
+
 ## Boot-ready contract
 
 The current firmware shell is intentionally small but explicit:
