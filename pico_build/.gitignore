@@ -15,6 +15,7 @@ build.ninja
 *.bin
 *.hex
 *.uf2
+!releases/*.uf2
 *.map
 *.dis
 
