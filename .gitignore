@@ -6,3 +6,4 @@
 # Legacy local animation assets are reference-only; compare against the submodule copy.
 gifs/
 pico_build/build/
+pico_build/build_tasbot_index/
