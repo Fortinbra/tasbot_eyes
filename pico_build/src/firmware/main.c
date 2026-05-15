@@ -19,6 +19,11 @@ typedef enum blink_scheduler_state {
     BLINK_STATE_BURST
 } blink_scheduler_state_t;
 
+typedef enum blink_wait_target {
+    BLINK_WAIT_TARGET_BURST = 0,
+    BLINK_WAIT_TARGET_ANIMATION
+} blink_wait_target_t;
+
 static tasbot_color_t rainbow_hue_to_rgb888(uint8_t hue)
 {
     uint8_t region = (uint8_t)(hue / 43u);
@@ -302,6 +307,7 @@ int main(void)
     uint64_t blink_wait_until_us = 0u;
     uint8_t brightness_level_index = 0u;
     uint8_t blink_burst_remaining = 0u;
+    blink_wait_target_t blink_wait_target = BLINK_WAIT_TARGET_BURST;
     uint8_t rainbow_hue = 0u;
     uint64_t rainbow_last_step_us = 0u;
     uint32_t blink_prng_state = 0u;
@@ -402,10 +408,11 @@ int main(void)
             base_frame_index = 0u;
             blink_state = BLINK_STATE_WAIT;
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-            printf("[blink] wait #%lu delay_ms=%u remaining=%u\n",
+             printf("[blink] wait #%lu delay_ms=%u remaining=%u target=%s\n",
                    (unsigned long)blink_wait_selection_count,
                    (unsigned)blink_wait_delay_ms,
-                   (unsigned)blink_burst_remaining);
+                 (unsigned)blink_burst_remaining,
+                 (blink_wait_target == BLINK_WAIT_TARGET_BURST) ? "burst" : "animation");
 #endif
         }
 
@@ -526,6 +533,7 @@ int main(void)
                 } else {
                     blink_burst_remaining = blink_random_burst_count(&blink_prng_state);
                     blink_burst_selection_count += 1u;
+                    blink_wait_target = BLINK_WAIT_TARGET_BURST;
                     blink_state = BLINK_STATE_BASE;
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
                     printf("[blink] burst #%lu count=%u\n",
@@ -541,18 +549,24 @@ int main(void)
                 if (blink_burst_remaining > 0u) {
                     blink_state = BLINK_STATE_BASE;
                 } else {
-                    blink_state = BLINK_STATE_ANIMATION;
+                    blink_wait_target = BLINK_WAIT_TARGET_ANIMATION;
+                    blink_state = BLINK_STATE_BASE;
                     playlist_animation_index = playlist_next_animation_index(playlist_animation_index, g_tasbot_animation_playlist_count);
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-                    printf("[playlist] switching to: %s\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
+                    printf("[playlist] switching to: %s (after post-blink wait)\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
 #endif
                 }
             }
         }
 
         if (blink_state == BLINK_STATE_WAIT && time_us_64() >= blink_wait_until_us) {
-            blink_state = BLINK_STATE_BURST;
-            blink_frame_index = 0u;
+            if (blink_wait_target == BLINK_WAIT_TARGET_BURST) {
+                blink_state = BLINK_STATE_BURST;
+                blink_frame_index = 0u;
+            } else {
+                blink_state = BLINK_STATE_ANIMATION;
+                playlist_frame_index = 0u;
+            }
         }
 
         watchdog_update();
