@@ -106,17 +106,6 @@ static uint8_t brightness_legacy_to_percent(uint8_t legacy)
     return (uint8_t)((((uint16_t)legacy * 100u) + 127u) / 255u);
 }
 
-static uint8_t brightness_default_level_index(const uint8_t* levels, size_t level_count)
-{
-    for (size_t i = 0; i < level_count; ++i) {
-        if (levels[i] == (uint8_t)TASBOT_EYES_BRIGHTNESS_DEFAULT_0_255) {
-            return (uint8_t)i;
-        }
-    }
-
-    return 0u;
-}
-
 static uint16_t playlist_next_animation_index(uint16_t current_index, uint16_t playlist_count)
 {
     const uint16_t kPlaylistFirstAnimationIndex = 3u;
@@ -322,7 +311,8 @@ int main(void)
     static const uint8_t kBrightnessLevels[] = {
         TASBOT_EYES_BRIGHTNESS_LEVEL_0_255,
         TASBOT_EYES_BRIGHTNESS_LEVEL_1_255,
-        TASBOT_EYES_BRIGHTNESS_LEVEL_2_255
+        TASBOT_EYES_BRIGHTNESS_LEVEL_2_255,
+        TASBOT_EYES_BRIGHTNESS_LEVEL_3_255
     };
 
     stdio_init_all();
@@ -367,13 +357,13 @@ int main(void)
     gpio_set_dir(TASBOT_EYES_BRIGHTNESS_BUTTON_PIN, GPIO_IN);
     gpio_pull_up(TASBOT_EYES_BRIGHTNESS_BUTTON_PIN);
 
-    brightness_level_index = brightness_default_level_index(kBrightnessLevels, sizeof(kBrightnessLevels) / sizeof(kBrightnessLevels[0]));
-
     {
-        uint8_t brightness_legacy = kBrightnessLevels[brightness_level_index];
+        uint8_t brightness_legacy = (uint8_t)TASBOT_EYES_BRIGHTNESS_DEFAULT_0_255;
         uint8_t brightness_percent = brightness_legacy_to_percent(brightness_legacy);
 
         hw_led_set_brightness_percent(brightness_percent);
+        /* Start one slot before the cycle so first button press enters at 3%. */
+        brightness_level_index = (uint8_t)((sizeof(kBrightnessLevels) / sizeof(kBrightnessLevels[0])) - 1u);
         printf("[brightness] legacy=%u/255 mapped=%u%% (button=%u GPIO%u, source %s)\n",
                (unsigned)brightness_legacy,
                (unsigned)hw_led_get_brightness_percent(),
