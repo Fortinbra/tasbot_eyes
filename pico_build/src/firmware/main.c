@@ -306,6 +306,7 @@ int main(void)
     bool button_was_pressed = false;
     uint64_t button_debounce_until_us = 0u;
     uint64_t blink_wait_until_us = 0u;
+    uint64_t frame_advance_due_us = 0u;
     uint8_t brightness_level_index = 0u;
     uint8_t blink_burst_remaining = 0u;
     blink_wait_target_t blink_wait_target = BLINK_WAIT_TARGET_BURST;
@@ -521,42 +522,52 @@ int main(void)
             return 1;
         }
 
-        *active_frame_index = (uint16_t)(*active_frame_index + 1u);
-        if (*active_frame_index >= anim->frame_count) {
-            *active_frame_index = 0u;
+        if (frame_advance_due_us == 0u) {
+            frame_advance_due_us = time_us_64() + ((uint64_t)delay_ms * 1000u);
+        }
 
-            if (blink_state == BLINK_STATE_ANIMATION) {
-                if (TASBOT_EYES_BLINK_MAX_COUNT == 0u || g_tasbot_animation_playlist_count <= kPlaylistFirstAnimationIndex) {
-                    playlist_animation_index = playlist_next_animation_index(playlist_animation_index, g_tasbot_animation_playlist_count);
-#if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-                    printf("[playlist] switching to: %s\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
-#endif
-                } else {
-                    blink_burst_remaining = blink_random_burst_count(&blink_prng_state);
-                    blink_burst_selection_count += 1u;
-                    blink_wait_target = BLINK_WAIT_TARGET_BURST;
-                    blink_state = BLINK_STATE_BASE;
-#if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-                    printf("[blink] burst #%lu count=%u\n",
-                           (unsigned long)blink_burst_selection_count,
-                           (unsigned)blink_burst_remaining);
-#endif
-                }
-            } else if (blink_state == BLINK_STATE_BURST) {
-                if (blink_burst_remaining > 0u) {
-                    blink_burst_remaining = (uint8_t)(blink_burst_remaining - 1u);
-                }
+        if (time_us_64() >= frame_advance_due_us) {
+            *active_frame_index = (uint16_t)(*active_frame_index + 1u);
+            if (*active_frame_index >= anim->frame_count) {
+                *active_frame_index = 0u;
+                frame_advance_due_us = 0u;
 
-                if (blink_burst_remaining > 0u) {
-                    blink_state = BLINK_STATE_BASE;
-                } else {
-                    blink_wait_target = BLINK_WAIT_TARGET_ANIMATION;
-                    blink_state = BLINK_STATE_BASE;
-                    playlist_animation_index = playlist_next_animation_index(playlist_animation_index, g_tasbot_animation_playlist_count);
+                if (blink_state == BLINK_STATE_ANIMATION) {
+                    if (TASBOT_EYES_BLINK_MAX_COUNT == 0u || g_tasbot_animation_playlist_count <= kPlaylistFirstAnimationIndex) {
+                        playlist_animation_index = playlist_next_animation_index(playlist_animation_index, g_tasbot_animation_playlist_count);
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-                    printf("[playlist] switching to: %s (after post-blink wait)\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
+                        printf("[playlist] switching to: %s\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
 #endif
+                    } else {
+                        blink_burst_remaining = blink_random_burst_count(&blink_prng_state);
+                        blink_burst_selection_count += 1u;
+                        blink_wait_target = BLINK_WAIT_TARGET_BURST;
+                        blink_state = BLINK_STATE_BASE;
+#if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
+                        printf("[blink] burst #%lu count=%u\n",
+                               (unsigned long)blink_burst_selection_count,
+                               (unsigned)blink_burst_remaining);
+#endif
+                    }
+                } else if (blink_state == BLINK_STATE_BURST) {
+                    if (blink_burst_remaining > 0u) {
+                        blink_burst_remaining = (uint8_t)(blink_burst_remaining - 1u);
+                    }
+
+                    if (blink_burst_remaining > 0u) {
+                        blink_state = BLINK_STATE_BASE;
+                    } else {
+                        blink_wait_target = BLINK_WAIT_TARGET_ANIMATION;
+                        blink_state = BLINK_STATE_BASE;
+                        playlist_animation_index = playlist_next_animation_index(playlist_animation_index, g_tasbot_animation_playlist_count);
+#if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
+                        printf("[playlist] switching to: %s (after post-blink wait)\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
+#endif
+                    }
                 }
+            } else {
+                uint16_t next_delay_ms = tasbot_embedded_animation_frame_delay_ms(anim, *active_frame_index);
+                frame_advance_due_us = time_us_64() + ((uint64_t)next_delay_ms * 1000u);
             }
         }
 
@@ -568,10 +579,25 @@ int main(void)
                 blink_state = BLINK_STATE_ANIMATION;
                 playlist_frame_index = 0u;
             }
+
+            frame_advance_due_us = 0u;
         }
 
         watchdog_update();
-        sleep_ms(delay_ms);
+        {
+            uint16_t loop_sleep_ms = delay_ms;
+
+            if (TASBOT_EYES_RAINBOW_MODE != 0u &&
+                loop_sleep_ms > (uint16_t)TASBOT_EYES_RAINBOW_STEP_MS_CLAMPED) {
+                loop_sleep_ms = (uint16_t)TASBOT_EYES_RAINBOW_STEP_MS_CLAMPED;
+            }
+
+            if (loop_sleep_ms == 0u) {
+                loop_sleep_ms = 1u;
+            }
+
+            sleep_ms(loop_sleep_ms);
+        }
     }
 }
 
