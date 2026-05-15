@@ -74,21 +74,22 @@ static void rainbow_update_hue(uint8_t* rainbow_hue, uint64_t* rainbow_last_step
 {
     const uint64_t step_us = (uint64_t)TASBOT_EYES_RAINBOW_STEP_MS_CLAMPED * 1000u;
     uint64_t elapsed_us;
-    uint64_t elapsed_steps;
 
     if (step_us == 0u || now_us <= *rainbow_last_step_us) {
         return;
     }
 
     elapsed_us = now_us - *rainbow_last_step_us;
-    elapsed_steps = elapsed_us / step_us;
 
-    if (elapsed_steps == 0u) {
+    if (elapsed_us < step_us) {
         return;
     }
 
-    *rainbow_hue = (uint8_t)(*rainbow_hue + (uint8_t)elapsed_steps);
-    *rainbow_last_step_us += elapsed_steps * step_us;
+    /* Advance by one step only; this avoids large hue jumps after long
+       scheduler delays (e.g., blink wait windows) and keeps color continuity
+       across animation transitions. */
+    *rainbow_hue = (uint8_t)(*rainbow_hue + 1u);
+    *rainbow_last_step_us = now_us;
 }
 
 static void rainbow_remap_white_pixels(tasbot_color_t* leds, size_t led_count, tasbot_color_t rainbow_rgb)
