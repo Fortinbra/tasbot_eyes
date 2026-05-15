@@ -8,3 +8,4 @@ gifs/
 pico_build/build/
 pico_build/build_tasbot_index/
 *.uf2
+pico-sdk/
