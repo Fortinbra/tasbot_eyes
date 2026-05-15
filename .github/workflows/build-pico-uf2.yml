@@ -21,6 +21,21 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant_name: standard
+            build_dir: pico_build/build/ci-standard
+            use_tasbot_index: OFF
+            artifact_name: tasbot-eyes-pico-uf2-standard
+          - variant_name: tasbot-index-8x28
+            build_dir: pico_build/build/ci-tasbot-index-8x28
+            use_tasbot_index: ON
+            artifact_name: tasbot-eyes-pico-uf2-tasbot-index-8x28
+
+    env:
+      PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
 
     steps:
       - name: Checkout repository
@@ -36,32 +51,34 @@ jobs:
             ninja-build \
             gcc-arm-none-eabi \
             libnewlib-arm-none-eabi \
+            binutils-arm-none-eabi \
+            python3 \
             build-essential \
-            git \
-            libgdiplus
+            git
 
       - name: Fetch Pico SDK
         run: |
-          git clone --depth 1 https://github.com/raspberrypi/pico-sdk.git "$GITHUB_WORKSPACE/pico-sdk"
-          git -C "$GITHUB_WORKSPACE/pico-sdk" submodule update --init --recursive
+          git clone --depth 1 https://github.com/raspberrypi/pico-sdk.git "$PICO_SDK_PATH"
+          git -C "$PICO_SDK_PATH" submodule update --init --recursive
 
       - name: Configure CMake
         run: |
           cmake \
             -S pico_build \
-            -B pico_build/build/ci \
+            -B "${{ matrix.build_dir }}" \
             -G Ninja \
-            -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk" \
+            -DPICO_SDK_PATH="$PICO_SDK_PATH" \
             -DPICO_BOARD=pimoroni_plasma2350 \
-            -DTASBOT_ENABLE_ASSET_GENERATION=OFF
+            -DTASBOT_ENABLE_ASSET_GENERATION=OFF \
+            -DTASBOT_LED_INDEX_USE_TASBOT_8X28=${{ matrix.use_tasbot_index }}
 
       - name: Build firmware
-        run: cmake --build pico_build/build/ci --parallel
+        run: cmake --build "${{ matrix.build_dir }}" --parallel
 
       - name: Upload UF2 artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tasbot-eyes-pico-uf2
+          name: ${{ matrix.artifact_name }}
           path: |
-            pico_build/build/ci/tasbot_eyes_pico.uf2
+            ${{ matrix.build_dir }}/tasbot_eyes_pico.uf2
           if-no-files-found: error
