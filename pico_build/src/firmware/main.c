@@ -108,15 +108,13 @@ static uint8_t brightness_legacy_to_percent(uint8_t legacy)
 
 static uint16_t playlist_next_animation_index(uint16_t current_index, uint16_t playlist_count)
 {
-    const uint16_t kPlaylistFirstAnimationIndex = 3u;
-
-    if (playlist_count <= kPlaylistFirstAnimationIndex) {
-        return 1u;
+    if (playlist_count == 0u) {
+        return 0u;
     }
 
     current_index = (uint16_t)(current_index + 1u);
     if (current_index >= playlist_count) {
-        current_index = kPlaylistFirstAnimationIndex;
+        current_index = 0u;
     }
 
     return current_index;
@@ -277,9 +275,6 @@ int main(void)
        which exceeds the default 2 KB Pico stack and causes a hard fault. */
     static tasbot_frame_t logical_frame;
     static tasbot_color_t physical_leds[TASBOT_EYES_PHYSICAL_LED_PIXEL_COUNT];
-    const uint16_t kBaseAnimationIndex = 1u;
-    const uint16_t kBlinkAnimationIndex = 2u;
-    const uint16_t kPlaylistFirstAnimationIndex = 3u;
     hw_led_metrics_t metrics;
     const tasbot_embedded_animation_t* anim = NULL;
     const tasbot_embedded_animation_t* recolor_anim = NULL;
@@ -372,17 +367,12 @@ int main(void)
                TASBOT_EYES_BRIGHTNESS_BUTTON_PIN_SOURCE);
     }
 
-    if (g_tasbot_animation_playlist_count < kPlaylistFirstAnimationIndex) {
-        puts("g_tasbot_animation_playlist_count must include startup/base/blink assets");
+    if (g_tasbot_animation_playlist_count < 1u) {
+        puts("g_tasbot_animation_playlist_count must include at least one random animation");
         return 1;
     }
 
-    if (g_tasbot_animation_playlist_count > kPlaylistFirstAnimationIndex) {
-        playlist_animation_index = kPlaylistFirstAnimationIndex;
-    } else {
-        /* If only startup/base/blink are available, idle on base. */
-        playlist_animation_index = kBaseAnimationIndex;
-    }
+    playlist_animation_index = 0u;
 
     blink_prng_state = (uint32_t)(time_us_64() ^ 0xA5A55A5Au);
     if (blink_prng_state == 0u) {
@@ -414,11 +404,11 @@ int main(void)
                 active_frame_index = &playlist_frame_index;
                 break;
             case BLINK_STATE_WAIT:
-                anim = g_tasbot_animation_playlist[kBaseAnimationIndex];
+                anim = &g_tasbot_base_animation;
                 active_frame_index = &base_frame_index;
                 break;
             case BLINK_STATE_BURST:
-                anim = g_tasbot_animation_playlist[kBlinkAnimationIndex];
+                anim = &g_tasbot_blink_animation;
                 active_frame_index = &blink_frame_index;
                 break;
             default:
@@ -531,7 +521,7 @@ int main(void)
                 frame_advance_due_us = 0u;
 
                 if (blink_state == BLINK_STATE_ANIMATION) {
-                    if (TASBOT_EYES_BLINK_MAX_COUNT == 0u || g_tasbot_animation_playlist_count <= kPlaylistFirstAnimationIndex) {
+                    if (TASBOT_EYES_BLINK_MAX_COUNT == 0u || g_tasbot_animation_playlist_count <= 1u) {
                         playlist_animation_index = playlist_next_animation_index(playlist_animation_index, g_tasbot_animation_playlist_count);
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
                         printf("[playlist] switching to: %s\n", g_tasbot_animation_playlist[playlist_animation_index]->name);

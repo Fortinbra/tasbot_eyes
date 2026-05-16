@@ -5,6 +5,7 @@
 #include "embedded_animation.h"
 
 #include "startup_asset.generated.h"
+#include "base_asset.generated.h"
 #include "blink_asset.generated.h"
 #include "colorful_asset.generated.h"
 #include "heart_eyes_asset.generated.h"
@@ -21,35 +22,11 @@
 #include "look_strangly_up_asset.generated.h"
 #include "dead_asset.generated.h"
 #include "file_asset.generated.h"
+#include "testbot_asset.generated.h"
+#include "gray_asset.generated.h"
 #include "twink_asset.generated.h"
 
-static const tasbot_embedded_animation_t g_tasbot_startup_animation = {
-    .name          = TASBOT_STARTUP_ASSET_NAME,
-    .source_path   = TASBOT_STARTUP_ASSET_SOURCE_PATH,
-    .source_pool   = TASBOT_STARTUP_ASSET_SOURCE_POOL,
-    .source_rule   = TASBOT_STARTUP_ASSET_SOURCE_RULE,
-    .source_sha256 = TASBOT_STARTUP_ASSET_SOURCE_SHA256,
-    .width         = TASBOT_STARTUP_ASSET_WIDTH,
-    .height        = TASBOT_STARTUP_ASSET_HEIGHT,
-    .frame_count   = TASBOT_STARTUP_ASSET_FRAME_COUNT,
-    .frame_delays_ms = g_tasbot_startup_frame_delays_ms,
-    .frame_pixels  = g_tasbot_startup_pixels,
-};
-
-static const tasbot_embedded_animation_t g_tasbot_blink_animation = {
-    .name          = TASBOT_BLINK_ASSET_NAME,
-    .source_path   = TASBOT_BLINK_ASSET_SOURCE_PATH,
-    .source_pool   = TASBOT_BLINK_ASSET_SOURCE_POOL,
-    .source_rule   = TASBOT_BLINK_ASSET_SOURCE_RULE,
-    .source_sha256 = TASBOT_BLINK_ASSET_SOURCE_SHA256,
-    .width         = TASBOT_BLINK_ASSET_WIDTH,
-    .height        = TASBOT_BLINK_ASSET_HEIGHT,
-    .frame_count   = TASBOT_BLINK_ASSET_FRAME_COUNT,
-    .frame_delays_ms = g_tasbot_blink_frame_delays_ms,
-    .frame_pixels  = g_tasbot_blink_pixels,
-};
-
-static const tasbot_embedded_animation_t g_tasbot_colorful_animation = {
+const tasbot_embedded_animation_t g_tasbot_colorful_animation = {
     .name          = TASBOT_COLORFUL_ASSET_NAME,
     .source_path   = TASBOT_COLORFUL_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_COLORFUL_ASSET_SOURCE_POOL,
@@ -62,7 +39,7 @@ static const tasbot_embedded_animation_t g_tasbot_colorful_animation = {
     .frame_pixels  = g_tasbot_colorful_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_heart_eyes_animation = {
+const tasbot_embedded_animation_t g_tasbot_heart_eyes_animation = {
     .name          = TASBOT_HEART_EYES_ASSET_NAME,
     .source_path   = TASBOT_HEART_EYES_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_HEART_EYES_ASSET_SOURCE_POOL,
@@ -75,7 +52,7 @@ static const tasbot_embedded_animation_t g_tasbot_heart_eyes_animation = {
     .frame_pixels  = g_tasbot_heart_eyes_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_coin_eyes_animation = {
+const tasbot_embedded_animation_t g_tasbot_coin_eyes_animation = {
     .name          = TASBOT_COIN_EYES_ASSET_NAME,
     .source_path   = TASBOT_COIN_EYES_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_COIN_EYES_ASSET_SOURCE_POOL,
@@ -88,7 +65,7 @@ static const tasbot_embedded_animation_t g_tasbot_coin_eyes_animation = {
     .frame_pixels  = g_tasbot_coin_eyes_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_smile_animation = {
+const tasbot_embedded_animation_t g_tasbot_smile_animation = {
     .name          = TASBOT_SMILE_ASSET_NAME,
     .source_path   = TASBOT_SMILE_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_SMILE_ASSET_SOURCE_POOL,
@@ -101,7 +78,7 @@ static const tasbot_embedded_animation_t g_tasbot_smile_animation = {
     .frame_pixels  = g_tasbot_smile_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_smirk_animation = {
+const tasbot_embedded_animation_t g_tasbot_smirk_animation = {
     .name          = TASBOT_SMIRK_ASSET_NAME,
     .source_path   = TASBOT_SMIRK_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_SMIRK_ASSET_SOURCE_POOL,
@@ -114,7 +91,7 @@ static const tasbot_embedded_animation_t g_tasbot_smirk_animation = {
     .frame_pixels  = g_tasbot_smirk_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_uwu_animation = {
+const tasbot_embedded_animation_t g_tasbot_uwu_animation = {
     .name          = TASBOT_UWU_ASSET_NAME,
     .source_path   = TASBOT_UWU_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_UWU_ASSET_SOURCE_POOL,
@@ -127,7 +104,7 @@ static const tasbot_embedded_animation_t g_tasbot_uwu_animation = {
     .frame_pixels  = g_tasbot_uwu_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_disc_animation = {
+const tasbot_embedded_animation_t g_tasbot_disc_animation = {
     .name          = TASBOT_DISC_ASSET_NAME,
     .source_path   = TASBOT_DISC_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_DISC_ASSET_SOURCE_POOL,
@@ -140,7 +117,7 @@ static const tasbot_embedded_animation_t g_tasbot_disc_animation = {
     .frame_pixels  = g_tasbot_disc_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_asteroids_animation = {
+const tasbot_embedded_animation_t g_tasbot_asteroids_animation = {
     .name          = TASBOT_ASTEROIDS_ASSET_NAME,
     .source_path   = TASBOT_ASTEROIDS_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_ASTEROIDS_ASSET_SOURCE_POOL,
@@ -153,7 +130,7 @@ static const tasbot_embedded_animation_t g_tasbot_asteroids_animation = {
     .frame_pixels  = g_tasbot_asteroids_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_portal_eyes_animation = {
+const tasbot_embedded_animation_t g_tasbot_portal_eyes_animation = {
     .name          = TASBOT_PORTAL_EYES_ASSET_NAME,
     .source_path   = TASBOT_PORTAL_EYES_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_PORTAL_EYES_ASSET_SOURCE_POOL,
@@ -166,7 +143,7 @@ static const tasbot_embedded_animation_t g_tasbot_portal_eyes_animation = {
     .frame_pixels  = g_tasbot_portal_eyes_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_whirl_animation = {
+const tasbot_embedded_animation_t g_tasbot_whirl_animation = {
     .name          = TASBOT_WHIRL_ASSET_NAME,
     .source_path   = TASBOT_WHIRL_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_WHIRL_ASSET_SOURCE_POOL,
@@ -179,7 +156,7 @@ static const tasbot_embedded_animation_t g_tasbot_whirl_animation = {
     .frame_pixels  = g_tasbot_whirl_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_loading_animation = {
+const tasbot_embedded_animation_t g_tasbot_loading_animation = {
     .name          = TASBOT_LOADING_ASSET_NAME,
     .source_path   = TASBOT_LOADING_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_LOADING_ASSET_SOURCE_POOL,
@@ -192,7 +169,7 @@ static const tasbot_embedded_animation_t g_tasbot_loading_animation = {
     .frame_pixels  = g_tasbot_loading_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_look_left_up_animation = {
+const tasbot_embedded_animation_t g_tasbot_look_left_up_animation = {
     .name          = TASBOT_LOOK_LEFT_UP_ASSET_NAME,
     .source_path   = TASBOT_LOOK_LEFT_UP_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_LOOK_LEFT_UP_ASSET_SOURCE_POOL,
@@ -205,7 +182,7 @@ static const tasbot_embedded_animation_t g_tasbot_look_left_up_animation = {
     .frame_pixels  = g_tasbot_look_left_up_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_look_strangly_up_animation = {
+const tasbot_embedded_animation_t g_tasbot_look_strangly_up_animation = {
     .name          = TASBOT_LOOK_STRANGLY_UP_ASSET_NAME,
     .source_path   = TASBOT_LOOK_STRANGLY_UP_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_LOOK_STRANGLY_UP_ASSET_SOURCE_POOL,
@@ -218,7 +195,7 @@ static const tasbot_embedded_animation_t g_tasbot_look_strangly_up_animation = {
     .frame_pixels  = g_tasbot_look_strangly_up_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_dead_animation = {
+const tasbot_embedded_animation_t g_tasbot_dead_animation = {
     .name          = TASBOT_DEAD_ASSET_NAME,
     .source_path   = TASBOT_DEAD_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_DEAD_ASSET_SOURCE_POOL,
@@ -231,7 +208,7 @@ static const tasbot_embedded_animation_t g_tasbot_dead_animation = {
     .frame_pixels  = g_tasbot_dead_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_file_animation = {
+const tasbot_embedded_animation_t g_tasbot_file_animation = {
     .name          = TASBOT_FILE_ASSET_NAME,
     .source_path   = TASBOT_FILE_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_FILE_ASSET_SOURCE_POOL,
@@ -244,7 +221,7 @@ static const tasbot_embedded_animation_t g_tasbot_file_animation = {
     .frame_pixels  = g_tasbot_file_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_twink_animation = {
+const tasbot_embedded_animation_t g_tasbot_twink_animation = {
     .name          = TASBOT_TWINK_ASSET_NAME,
     .source_path   = TASBOT_TWINK_ASSET_SOURCE_PATH,
     .source_pool   = TASBOT_TWINK_ASSET_SOURCE_POOL,
@@ -257,9 +234,46 @@ static const tasbot_embedded_animation_t g_tasbot_twink_animation = {
     .frame_pixels  = g_tasbot_twink_pixels,
 };
 
-static const tasbot_embedded_animation_t* const kTasbotAnimationPlaylist[] = {
-    &g_tasbot_startup_animation,
-    &g_tasbot_blink_animation,
+const tasbot_embedded_animation_t g_tasbot_startup_animation = {
+    .name          = TASBOT_STARTUP_ASSET_NAME,
+    .source_path   = TASBOT_STARTUP_ASSET_SOURCE_PATH,
+    .source_pool   = TASBOT_STARTUP_ASSET_SOURCE_POOL,
+    .source_rule   = TASBOT_STARTUP_ASSET_SOURCE_RULE,
+    .source_sha256 = TASBOT_STARTUP_ASSET_SOURCE_SHA256,
+    .width         = TASBOT_STARTUP_ASSET_WIDTH,
+    .height        = TASBOT_STARTUP_ASSET_HEIGHT,
+    .frame_count   = TASBOT_STARTUP_ASSET_FRAME_COUNT,
+    .frame_delays_ms = g_tasbot_startup_frame_delays_ms,
+    .frame_pixels  = g_tasbot_startup_pixels,
+};
+
+const tasbot_embedded_animation_t g_tasbot_base_animation = {
+    .name          = TASBOT_BASE_ASSET_NAME,
+    .source_path   = TASBOT_BASE_ASSET_SOURCE_PATH,
+    .source_pool   = TASBOT_BASE_ASSET_SOURCE_POOL,
+    .source_rule   = TASBOT_BASE_ASSET_SOURCE_RULE,
+    .source_sha256 = TASBOT_BASE_ASSET_SOURCE_SHA256,
+    .width         = TASBOT_BASE_ASSET_WIDTH,
+    .height        = TASBOT_BASE_ASSET_HEIGHT,
+    .frame_count   = TASBOT_BASE_ASSET_FRAME_COUNT,
+    .frame_delays_ms = g_tasbot_base_frame_delays_ms,
+    .frame_pixels  = g_tasbot_base_pixels,
+};
+
+const tasbot_embedded_animation_t g_tasbot_blink_animation = {
+    .name          = TASBOT_BLINK_ASSET_NAME,
+    .source_path   = TASBOT_BLINK_ASSET_SOURCE_PATH,
+    .source_pool   = TASBOT_BLINK_ASSET_SOURCE_POOL,
+    .source_rule   = TASBOT_BLINK_ASSET_SOURCE_RULE,
+    .source_sha256 = TASBOT_BLINK_ASSET_SOURCE_SHA256,
+    .width         = TASBOT_BLINK_ASSET_WIDTH,
+    .height        = TASBOT_BLINK_ASSET_HEIGHT,
+    .frame_count   = TASBOT_BLINK_ASSET_FRAME_COUNT,
+    .frame_delays_ms = g_tasbot_blink_frame_delays_ms,
+    .frame_pixels  = g_tasbot_blink_pixels,
+};
+
+const tasbot_embedded_animation_t* const kTasbotAnimationPlaylist[] = {
     &g_tasbot_colorful_animation,
     &g_tasbot_heart_eyes_animation,
     &g_tasbot_coin_eyes_animation,

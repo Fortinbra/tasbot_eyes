@@ -41,6 +41,8 @@ $animations = @(
     [PSCustomObject]@{ AssetName = "twink.gif";             SymbolPrefix = "twink" }
 )
 
+$reservedSymbolPrefixes = @("startup", "base", "blink")
+
 # Ensure explicit entries are unique before generation.
 $seenAssetNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $seenSymbolPrefixes = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -72,7 +74,7 @@ foreach ($anim in $animations) {
 
 Write-Host "Writing animation_registry.generated.h..."
 
-# Build playlist entries after filtering one-frame assets and duplicate content.
+# Build playlist entries after filtering reserved assets, one-frame assets, and duplicate content.
 $playlistAnimations = New-Object System.Collections.Generic.List[object]
 $seenSha256 = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($anim in $animations) {
@@ -89,6 +91,11 @@ foreach ($anim in $animations) {
     }
 
     $frameCount = [int]$meta["frame_count"]
+    if ($reservedSymbolPrefixes -contains $anim.SymbolPrefix) {
+        Write-Host "  -> Keeping reserved animation out of playlist: $($anim.AssetName)"
+        continue
+    }
+
     if ($frameCount -le 1) {
         Write-Host "  -> Skipping one-frame animation: $($anim.AssetName)"
         continue
@@ -118,17 +125,35 @@ $registry = New-Object System.Text.StringBuilder
 [void]$registry.AppendLine("")
 
 # Include all per-asset headers
-foreach ($anim in $playlistAnimations) {
+foreach ($anim in $animations) {
     [void]$registry.AppendLine("#include `"$($anim.SymbolPrefix)_asset.generated.h`"")
 }
 
 [void]$registry.AppendLine("")
 
-# Static animation struct instances
+# Animation struct instances
 foreach ($anim in $playlistAnimations) {
     $lower = $anim.SymbolPrefix
     $upper = $lower.ToUpperInvariant()
-    [void]$registry.AppendLine("static const tasbot_embedded_animation_t g_tasbot_${lower}_animation = {")
+    [void]$registry.AppendLine("const tasbot_embedded_animation_t g_tasbot_${lower}_animation = {")
+    [void]$registry.AppendLine("    .name          = TASBOT_${upper}_ASSET_NAME,")
+    [void]$registry.AppendLine("    .source_path   = TASBOT_${upper}_ASSET_SOURCE_PATH,")
+    [void]$registry.AppendLine("    .source_pool   = TASBOT_${upper}_ASSET_SOURCE_POOL,")
+    [void]$registry.AppendLine("    .source_rule   = TASBOT_${upper}_ASSET_SOURCE_RULE,")
+    [void]$registry.AppendLine("    .source_sha256 = TASBOT_${upper}_ASSET_SOURCE_SHA256,")
+    [void]$registry.AppendLine("    .width         = TASBOT_${upper}_ASSET_WIDTH,")
+    [void]$registry.AppendLine("    .height        = TASBOT_${upper}_ASSET_HEIGHT,")
+    [void]$registry.AppendLine("    .frame_count   = TASBOT_${upper}_ASSET_FRAME_COUNT,")
+    [void]$registry.AppendLine("    .frame_delays_ms = g_tasbot_${lower}_frame_delays_ms,")
+    [void]$registry.AppendLine("    .frame_pixels  = g_tasbot_${lower}_pixels,")
+    [void]$registry.AppendLine("};")
+    [void]$registry.AppendLine("")
+}
+
+foreach ($anim in $animations | Where-Object { $reservedSymbolPrefixes -contains $_.SymbolPrefix }) {
+    $lower = $anim.SymbolPrefix
+    $upper = $lower.ToUpperInvariant()
+    [void]$registry.AppendLine("const tasbot_embedded_animation_t g_tasbot_${lower}_animation = {")
     [void]$registry.AppendLine("    .name          = TASBOT_${upper}_ASSET_NAME,")
     [void]$registry.AppendLine("    .source_path   = TASBOT_${upper}_ASSET_SOURCE_PATH,")
     [void]$registry.AppendLine("    .source_pool   = TASBOT_${upper}_ASSET_SOURCE_POOL,")
@@ -144,7 +169,7 @@ foreach ($anim in $playlistAnimations) {
 }
 
 # Playlist array
-[void]$registry.AppendLine("static const tasbot_embedded_animation_t* const kTasbotAnimationPlaylist[] = {")
+[void]$registry.AppendLine("const tasbot_embedded_animation_t* const kTasbotAnimationPlaylist[] = {")
 foreach ($anim in $playlistAnimations) {
     [void]$registry.AppendLine("    &g_tasbot_$($anim.SymbolPrefix)_animation,")
 }
