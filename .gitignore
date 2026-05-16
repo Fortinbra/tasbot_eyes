@@ -1,11 +1,38 @@
-/build/
+# Build outputs
+build/
+build-*/
+build_tasbot_index/
+
+# CMake/Ninja scratch
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+build.ninja
+.ninja_deps
+.ninja_log
+
+# Generated binaries/debug artifacts
+*.elf
+*.bin
+*.hex
+*.map
+*.dis
+
+# VS Code local state
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Legacy local animation assets are reference-only; compare against the submodule copy.
+gifs/
+
+# Pico SDK (cloned separately)
+pico-sdk/
+
+# IDE
 /cmake-build-debug/
 /cmake-build-release/
 /cmake-build-remote-host/
 /.idea/
-# Legacy local animation assets are reference-only; compare against the submodule copy.
-gifs/
-pico_build/build/
-pico_build/build_tasbot_index/
-*.uf2
-pico-sdk/

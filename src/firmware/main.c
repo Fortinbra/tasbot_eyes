@@ -297,6 +297,7 @@ int main(void)
     uint8_t rainbow_hue = 0u;
     uint64_t rainbow_last_step_us = 0u;
     uint32_t blink_prng_state = 0u;
+    uint32_t recolor_prng_state = 0u;
     uint32_t blink_burst_selection_count = 0u;
     uint32_t blink_wait_selection_count = 0u;
     uint32_t recolor_applied_count = 0u;
@@ -379,6 +380,11 @@ int main(void)
         blink_prng_state = 1u;
     }
 
+    recolor_prng_state = (uint32_t)(time_us_64() ^ 0x5A5AA5A5u);
+    if (recolor_prng_state == 0u) {
+        recolor_prng_state = 1u;
+    }
+
     rainbow_last_step_us = time_us_64();
     printf("[playlist] starting with: %s\n", g_tasbot_animation_playlist[playlist_animation_index]->name);
 
@@ -434,7 +440,7 @@ int main(void)
                        anim->name);
 #endif
             } else if (TASBOT_EYES_RANDOMIZE_MONOCHROME != 0u && animation_is_monochrome(anim)) {
-                recolor_selected = recolor_pick_palette_color(&blink_prng_state);
+                recolor_selected = recolor_pick_palette_color(&recolor_prng_state);
                 recolor_active_for_animation = true;
                 recolor_applied_count += 1u;
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS

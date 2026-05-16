@@ -1,7 +1,7 @@
 param(
     [string]$PicoSdkPath = "",
     [string]$Board = "pimoroni_plasma2350",
-    [string]$BuildDir = "C:\ws\tasbot_eyes\pico_build\build\ws2812-proof",
+    [string]$BuildDir = "C:\ws\tasbot_eyes\build\ws2812-proof",
     [string]$SerialPort = "",
     [int]$CaptureSeconds = 6
 )
@@ -64,7 +64,7 @@ if (Test-Path $BuildDir) {
 }
 
 Write-Host "== Configure =="
-& $cmake -G Ninja -S (Join-Path $repoRoot "pico_build") -B $BuildDir "-DPICO_SDK_PATH=$PicoSdkPath" "-DPICO_BOARD=$Board"
+& $cmake -G Ninja -S $repoRoot -B $BuildDir "-DPICO_SDK_PATH=$PicoSdkPath" "-DPICO_BOARD=$Board"
 if ($LASTEXITCODE -ne 0) {
     throw "Pico configure failed."
 }
@@ -89,7 +89,7 @@ Get-ChildItem $BuildDir -Filter "tasbot_eyes_pico.*" -File |
     Format-Table -Wrap
 
 Write-Host "== Ready banner in ELF =="
-& "$env:SystemRoot\System32\findstr.exe" /C:"tasbot_eyes pico_build booting" /C:"tasbot_eyes pico_build ready" /C:"board contract: WS2812B on GPIO15, active 8x28 (224 pixels) within physical 8x32 (256 pixels)" /C:"runtime seam: logical 28x8 active frame -> column-serpentine mapper -> 256 LED physical transport" (Join-Path $BuildDir "tasbot_eyes_pico.elf")
+& "$env:SystemRoot\System32\findstr.exe" /C:"tasbot_eyes booting" /C:"tasbot_eyes ready" /C:"board contract: WS2812B on GPIO15, active 8x28 (224 pixels) within physical 8x32 (256 pixels)" /C:"runtime seam: logical 28x8 active frame -> column-serpentine mapper -> 256 LED physical transport" (Join-Path $BuildDir "tasbot_eyes_pico.elf")
 if ($LASTEXITCODE -ne 0) {
     throw "Expected firmware banners and board contract were not found in the ELF."
 }

@@ -6,12 +6,20 @@ on:
     branches:
       - main
     paths:
-      - 'pico_build/**'
+      - 'src/**'
+      - 'assets/**'
+      - 'tools/**'
+      - 'CMakeLists.txt'
+      - 'pico_sdk_import.cmake'
       - 'external/TASBot-eye-animations/**'
       - '.github/workflows/build-pico-uf2.yml'
   pull_request:
     paths:
-      - 'pico_build/**'
+      - 'src/**'
+      - 'assets/**'
+      - 'tools/**'
+      - 'CMakeLists.txt'
+      - 'pico_sdk_import.cmake'
       - 'external/TASBot-eye-animations/**'
       - '.github/workflows/build-pico-uf2.yml'
 
@@ -26,11 +34,11 @@ jobs:
       matrix:
         include:
           - variant_name: standard
-            build_dir: pico_build/build/ci-standard
+            build_dir: build/ci-standard
             use_tasbot_index: OFF
             artifact_name: tasbot-eyes-pico-uf2-standard
           - variant_name: tasbot-index-8x28
-            build_dir: pico_build/build/ci-tasbot-index-8x28
+            build_dir: build/ci-tasbot-index-8x28
             use_tasbot_index: ON
             artifact_name: tasbot-eyes-pico-uf2-tasbot-index-8x28
 
@@ -64,7 +72,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake \
-            -S pico_build \
+            -S . \
             -B "${{ matrix.build_dir }}" \
             -G Ninja \
             -DPICO_SDK_PATH="$PICO_SDK_PATH" \

@@ -21,8 +21,8 @@
 #define TASBOT_EYES_STRINGIFY_STEP(value) #value
 #define TASBOT_EYES_STRINGIFY(value) TASBOT_EYES_STRINGIFY_STEP(value)
 
-#define TASBOT_EYES_BOOT_BANNER "tasbot_eyes pico_build booting"
-#define TASBOT_EYES_READY_BANNER "tasbot_eyes pico_build ready"
+#define TASBOT_EYES_BOOT_BANNER "tasbot_eyes booting"
+#define TASBOT_EYES_READY_BANNER "tasbot_eyes ready"
 #define TASBOT_EYES_BOOT_DELAY_MS 2000u
 #define TASBOT_EYES_READY_REPEAT_COUNT 4u
 #define TASBOT_EYES_READY_REPEAT_INTERVAL_MS 250u
