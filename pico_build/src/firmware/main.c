@@ -432,18 +432,14 @@ int main(void)
         }
 
         if (anim != recolor_anim) {
+            bool recolor_eligible_state = (blink_state == BLINK_STATE_ANIMATION);
+
             recolor_anim = anim;
             recolor_active_for_animation = false;
 
-            if (TASBOT_EYES_RAINBOW_MODE != 0u) {
-                recolor_skipped_count += 1u;
-#if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-                printf("[recolor] applied=%lu skipped=%lu animation=%s (disabled by rainbow mode)\n",
-                       (unsigned long)recolor_applied_count,
-                       (unsigned long)recolor_skipped_count,
-                       anim->name);
-#endif
-            } else if (TASBOT_EYES_RANDOMIZE_MONOCHROME != 0u && animation_is_monochrome(anim)) {
+            if (TASBOT_EYES_RANDOMIZE_MONOCHROME != 0u &&
+                recolor_eligible_state &&
+                animation_is_monochrome(anim)) {
                 recolor_selected = recolor_pick_palette_color(&blink_prng_state);
                 recolor_active_for_animation = true;
                 recolor_applied_count += 1u;
@@ -457,10 +453,11 @@ int main(void)
             } else {
                 recolor_skipped_count += 1u;
 #if TASBOT_EYES_RUNTIME_VERBOSE_LOGS
-                printf("[recolor] applied=%lu skipped=%lu animation=%s (passthrough)\n",
+                printf("[recolor] applied=%lu skipped=%lu animation=%s (passthrough, state=%u)\n",
                        (unsigned long)recolor_applied_count,
                        (unsigned long)recolor_skipped_count,
-                       anim->name);
+                       anim->name,
+                       (unsigned)blink_state);
 #endif
             }
         }
