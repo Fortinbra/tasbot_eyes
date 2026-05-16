@@ -5,7 +5,6 @@
 #include "embedded_animation.h"
 
 #include "startup_asset.generated.h"
-#include "base_asset.generated.h"
 #include "blink_asset.generated.h"
 #include "colorful_asset.generated.h"
 #include "heart_eyes_asset.generated.h"
@@ -22,8 +21,6 @@
 #include "look_strangly_up_asset.generated.h"
 #include "dead_asset.generated.h"
 #include "file_asset.generated.h"
-#include "testbot_asset.generated.h"
-#include "gray_asset.generated.h"
 #include "twink_asset.generated.h"
 
 static const tasbot_embedded_animation_t g_tasbot_startup_animation = {
@@ -37,19 +34,6 @@ static const tasbot_embedded_animation_t g_tasbot_startup_animation = {
     .frame_count   = TASBOT_STARTUP_ASSET_FRAME_COUNT,
     .frame_delays_ms = g_tasbot_startup_frame_delays_ms,
     .frame_pixels  = g_tasbot_startup_pixels,
-};
-
-static const tasbot_embedded_animation_t g_tasbot_base_animation = {
-    .name          = TASBOT_BASE_ASSET_NAME,
-    .source_path   = TASBOT_BASE_ASSET_SOURCE_PATH,
-    .source_pool   = TASBOT_BASE_ASSET_SOURCE_POOL,
-    .source_rule   = TASBOT_BASE_ASSET_SOURCE_RULE,
-    .source_sha256 = TASBOT_BASE_ASSET_SOURCE_SHA256,
-    .width         = TASBOT_BASE_ASSET_WIDTH,
-    .height        = TASBOT_BASE_ASSET_HEIGHT,
-    .frame_count   = TASBOT_BASE_ASSET_FRAME_COUNT,
-    .frame_delays_ms = g_tasbot_base_frame_delays_ms,
-    .frame_pixels  = g_tasbot_base_pixels,
 };
 
 static const tasbot_embedded_animation_t g_tasbot_blink_animation = {
@@ -260,32 +244,6 @@ static const tasbot_embedded_animation_t g_tasbot_file_animation = {
     .frame_pixels  = g_tasbot_file_pixels,
 };
 
-static const tasbot_embedded_animation_t g_tasbot_testbot_animation = {
-    .name          = TASBOT_TESTBOT_ASSET_NAME,
-    .source_path   = TASBOT_TESTBOT_ASSET_SOURCE_PATH,
-    .source_pool   = TASBOT_TESTBOT_ASSET_SOURCE_POOL,
-    .source_rule   = TASBOT_TESTBOT_ASSET_SOURCE_RULE,
-    .source_sha256 = TASBOT_TESTBOT_ASSET_SOURCE_SHA256,
-    .width         = TASBOT_TESTBOT_ASSET_WIDTH,
-    .height        = TASBOT_TESTBOT_ASSET_HEIGHT,
-    .frame_count   = TASBOT_TESTBOT_ASSET_FRAME_COUNT,
-    .frame_delays_ms = g_tasbot_testbot_frame_delays_ms,
-    .frame_pixels  = g_tasbot_testbot_pixels,
-};
-
-static const tasbot_embedded_animation_t g_tasbot_gray_animation = {
-    .name          = TASBOT_GRAY_ASSET_NAME,
-    .source_path   = TASBOT_GRAY_ASSET_SOURCE_PATH,
-    .source_pool   = TASBOT_GRAY_ASSET_SOURCE_POOL,
-    .source_rule   = TASBOT_GRAY_ASSET_SOURCE_RULE,
-    .source_sha256 = TASBOT_GRAY_ASSET_SOURCE_SHA256,
-    .width         = TASBOT_GRAY_ASSET_WIDTH,
-    .height        = TASBOT_GRAY_ASSET_HEIGHT,
-    .frame_count   = TASBOT_GRAY_ASSET_FRAME_COUNT,
-    .frame_delays_ms = g_tasbot_gray_frame_delays_ms,
-    .frame_pixels  = g_tasbot_gray_pixels,
-};
-
 static const tasbot_embedded_animation_t g_tasbot_twink_animation = {
     .name          = TASBOT_TWINK_ASSET_NAME,
     .source_path   = TASBOT_TWINK_ASSET_SOURCE_PATH,
@@ -301,7 +259,6 @@ static const tasbot_embedded_animation_t g_tasbot_twink_animation = {
 
 static const tasbot_embedded_animation_t* const kTasbotAnimationPlaylist[] = {
     &g_tasbot_startup_animation,
-    &g_tasbot_base_animation,
     &g_tasbot_blink_animation,
     &g_tasbot_colorful_animation,
     &g_tasbot_heart_eyes_animation,
@@ -318,7 +275,5 @@ static const tasbot_embedded_animation_t* const kTasbotAnimationPlaylist[] = {
     &g_tasbot_look_strangly_up_animation,
     &g_tasbot_dead_animation,
     &g_tasbot_file_animation,
-    &g_tasbot_testbot_animation,
-    &g_tasbot_gray_animation,
     &g_tasbot_twink_animation,
 };
