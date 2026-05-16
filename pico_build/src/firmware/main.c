@@ -432,13 +432,13 @@ int main(void)
         }
 
         if (anim != recolor_anim) {
-            bool recolor_eligible_state = (blink_state == BLINK_STATE_ANIMATION);
+            bool is_playlist_animation_state = (blink_state == BLINK_STATE_ANIMATION);
 
             recolor_anim = anim;
             recolor_active_for_animation = false;
 
             if (TASBOT_EYES_RANDOMIZE_MONOCHROME != 0u &&
-                recolor_eligible_state &&
+                is_playlist_animation_state &&
                 animation_is_monochrome(anim)) {
                 recolor_selected = recolor_pick_palette_color(&blink_prng_state);
                 recolor_active_for_animation = true;
